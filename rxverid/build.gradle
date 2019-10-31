@@ -1,0 +1,42 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.appliedrec.verid:core:$rootProject.veridVersion"
+    implementation "androidx.appcompat:appcompat:$rootProject.appcompatVersion"
+    implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxjavaVersion"
+    implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"
+    implementation "org.javatuples:javatuples:$rootProject.javatuplesVersion"
+    implementation "androidx.annotation:annotation:$rootProject.annotationVersion"
+    implementation "androidx.exifinterface:exifinterface:$rootProject.exifinterfaceVersion"
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.mockito:mockito-core:2.28.2"
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}

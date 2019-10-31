@@ -1,0 +1,166 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.5.1'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4.9.6"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+ext {
+    veridVersion = '[1.14,2.0['
+    rxjavaVersion = '[2.2,3.0['
+    rxandroidVersion = '[2.1,3.0['
+    appcompatVersion = '[1.1,2.0['
+    exifinterfaceVersion = '[1.0,2.0['
+    annotationVersion = '[1.1,2.0['
+    javatuplesVersion = '[1.2,2.0['
+    versionMajor = 1
+    versionMinor = 0
+    versionPatch = 0
+    versionClassifier = null
+    versionClassifierVersion = ""
+    minSdkVersion = 21
+}
+
+Integer generateVersionCode() {
+    return ext.minSdkVersion * 10000000 + ext.versionMajor * 10000 + ext.versionMinor * 100 + ext.versionPatch
+}
+
+String generateVersionName() {
+    String versionName = "${ext.versionMajor}.${ext.versionMinor}.${ext.versionPatch}"
+    if (ext.versionClassifier != null) {
+        versionName += "-" + ext.versionClassifier + ".${ext.versionClassifierVersion}"
+    }
+    return versionName;
+}
+
+allprojects {
+    apply plugin: 'com.jfrog.artifactory'
+    apply plugin: 'maven'
+    apply plugin: "maven-publish"
+    repositories {
+        google()
+        jcenter()
+        maven {
+            url 'https://dev.ver-id.com/artifactory/gradle-release'
+            name 'Ver-ID'
+        }
+    }
+}
+
+artifactory {
+    contextUrl = verid_artifactory_url
+    //The base Artifactory URL if not overridden by the publisher/resolver
+    publish {
+        repository {
+            repoKey = verid_artifactory_repo
+            username = verid_artifactory_username
+            password = verid_artifactory_password
+            maven = true
+        }
+        defaults {
+            publications('rxverid')
+            publishArtifacts = true
+        }
+    }
+}
+
+project('rxverid') {
+    artifactoryPublish.dependsOn(':rxverid:assembleRelease')
+
+    publishing {
+        publications {
+            rxverid(MavenPublication) {
+                groupId "com.appliedrec.verid"
+                version = rootProject.generateVersionName()
+                artifactId "rx"
+                artifact("$buildDir/outputs/aar/rxverid-release.aar") {
+                    extension "aar"
+                }
+                pom.withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    def nativeLibsNode = dependenciesNode.appendNode('dependency')
+                    nativeLibsNode.appendNode('groupId', 'com.appliedrec.verid')
+                    nativeLibsNode.appendNode('artifactId', 'core')
+                    nativeLibsNode.appendNode('version', veridVersion)
+                    def androidSupportNode = dependenciesNode.appendNode('dependency')
+                    androidSupportNode.appendNode('groupId', 'androidx.appcompat')
+                    androidSupportNode.appendNode('artifactId', 'appcompat')
+                    androidSupportNode.appendNode('version', appcompatVersion)
+                    def exifNode = dependenciesNode.appendNode('dependency')
+                    exifNode.appendNode('groupId', 'androidx.exifinterface')
+                    exifNode.appendNode('artifactId', 'exifinterface')
+                    exifNode.appendNode('version', exifinterfaceVersion)
+                    def annotationNode = dependenciesNode.appendNode('dependency')
+                    annotationNode.appendNode('groupId', 'androidx.annotation')
+                    annotationNode.appendNode('artifactId', 'annotation')
+                    annotationNode.appendNode('version', annotationVersion)
+                    def rxjavaNode = dependenciesNode.appendNode('dependency')
+                    rxjavaNode.appendNode('groupId', 'io.reactivex.rxjava2')
+                    rxjavaNode.appendNode('artifactId', 'rxjava')
+                    rxjavaNode.appendNode('version', rxjavaVersion)
+                    def rxandroidNode = dependenciesNode.appendNode('dependency')
+                    rxandroidNode.appendNode('groupId', 'io.reactivex.rxjava2')
+                    rxandroidNode.appendNode('artifactId', 'rxandroid')
+                    rxandroidNode.appendNode('version', rxandroidVersion)
+                    def javatuplesNode = dependenciesNode.appendNode('dependency')
+                    javatuplesNode.appendNode('groupId', 'org.javatuples')
+                    javatuplesNode.appendNode('artifactId', 'javatuples')
+                    javatuplesNode.appendNode('version', javatuplesVersion)
+                }
+            }
+            veridcore14(MavenPublication) {
+                groupId "com.appliedrec.verid"
+                version = rootProject.generateVersionName()
+                artifactId "core-api14"
+                artifact("$buildDir/outputs/aar/core-appliedrec-api14-release.aar") {
+                    extension "aar"
+                }
+                pom.withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+                    def veridNode = dependenciesNode.appendNode('dependency')
+                    veridNode.appendNode('groupId', 'com.appliedrec.verid')
+                    veridNode.appendNode('artifactId', 'core')
+                    veridNode.appendNode('version', veridVersion)
+                    def androidSupportNode = dependenciesNode.appendNode('dependency')
+                    androidSupportNode.appendNode('groupId', 'androidx.appcompat')
+                    androidSupportNode.appendNode('artifactId', 'appcompat')
+                    androidSupportNode.appendNode('version', appcompatVersion)
+                    def exifNode = dependenciesNode.appendNode('dependency')
+                    exifNode.appendNode('groupId', 'androidx.exifinterface')
+                    exifNode.appendNode('artifactId', 'exifinterface')
+                    exifNode.appendNode('version', exifinterfaceVersion)
+                    def annotationNode = dependenciesNode.appendNode('dependency')
+                    annotationNode.appendNode('groupId', 'androidx.annotation')
+                    annotationNode.appendNode('artifactId', 'annotation')
+                    annotationNode.appendNode('version', annotationVersion)
+                    def roomNode = dependenciesNode.appendNode('dependency')
+                    roomNode.appendNode('groupId', 'androidx.room')
+                    roomNode.appendNode('artifactId', 'room-runtime')
+                    roomNode.appendNode('version', roomVersion)
+                    def gsonNode = dependenciesNode.appendNode('dependency')
+                    gsonNode.appendNode('groupId', 'com.google.code.gson')
+                    gsonNode.appendNode('artifactId', 'gson')
+                    gsonNode.appendNode('version', gsonVersion)
+                    def relinkerNode = dependenciesNode.appendNode('dependency')
+                    relinkerNode.appendNode('groupId', 'com.getkeepsafe.relinker')
+                    relinkerNode.appendNode('artifactId', 'relinker')
+                    relinkerNode.appendNode('version', relinkerVersion)
+                }
+            }
+        }
+    }
+
+    artifactoryPublish {
+        publications(publishing.publications.rxverid)
+    }
+}

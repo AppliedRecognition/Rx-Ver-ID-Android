@@ -3,7 +3,6 @@ package com.appliedrec.rxverid;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 
@@ -116,6 +115,7 @@ public class RxVerIDTest {
             RxVerID rxVerID = mock(RxVerID.class);
             when(rxVerID.getVerID()).thenReturn(Single.just(mockVerID));
             when(rxVerID.detectFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenCallRealMethod();
 
             TestObserver<Face> faceTestObserver = rxVerID.detectFacesInImage(mockImage, 1).test();
             faceTestObserver.assertSubscribed().assertNoErrors().assertValue(mockFace).assertComplete();
@@ -137,6 +137,7 @@ public class RxVerIDTest {
             RxVerID rxVerID = mock(RxVerID.class);
             when(rxVerID.getVerID()).thenReturn(Single.just(mockVerID));
             when(rxVerID.detectFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenCallRealMethod();
 
             TestObserver<Face> faceTestObserver = rxVerID.detectFacesInImage(mockImage, 1).test();
 
@@ -165,6 +166,7 @@ public class RxVerIDTest {
             RxVerID rxVerID = mock(RxVerID.class);
             when(rxVerID.getVerID()).thenReturn(Single.just(mockVerID));
             when(rxVerID.detectFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenCallRealMethod();
             TestObserver<Face> faceTestObserver = rxVerID.detectFacesInImage(mockImage, 1).test();
 
             faceTestObserver
@@ -192,7 +194,8 @@ public class RxVerIDTest {
             doReturn(Single.just(mockVerID)).when(rxVerID).getVerID();
             doReturn(Single.just(mockImage)).when(rxVerID).convertUriToVerIDImage(any());
             doCallRealMethod().when(rxVerID).detectFacesInImage(any(Uri.class), anyInt());
-            doCallRealMethod().when(rxVerID).detectFacesInImage( any(VerIDImage.class), anyInt());
+            doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerIDImage.class), anyInt());
+            doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt());
             TestObserver<Face> faceTestObserver = rxVerID.detectFacesInImage(mock(Uri.class), 1).test();
             faceTestObserver.assertSubscribed().assertNoErrors().assertValue(mockFace).assertComplete();
             verify(mockVerID).getFaceDetection();
@@ -219,9 +222,11 @@ public class RxVerIDTest {
             doReturn(Single.just(mockVerID)).when(rxVerID).getVerID();
             doReturn(Single.just(mockImage)).when(rxVerID).convertUriToVerIDImage(any());
             doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerIDImage.class), anyInt());
+            doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt());
             doCallRealMethod().when(rxVerID).detectRecognizableFacesInImage(any(Uri.class), anyInt());
             doCallRealMethod().when(rxVerID).detectRecognizableFacesInImage(any(VerIDImage.class), anyInt());
             doCallRealMethod().when(rxVerID).convertFaceToRecognizableFace(any(), any());
+            doCallRealMethod().when(rxVerID).convertFaceToRecognizableFace(any(VerID.class), any(), any());
 
             TestObserver<RecognizableFace> faceTestObserver = rxVerID.detectRecognizableFacesInImage(mock(Uri.class), 1).test();
 
@@ -257,7 +262,9 @@ public class RxVerIDTest {
             when(rxVerID.getVerID()).thenReturn(Single.just(mockVerID));
             when(rxVerID.detectRecognizableFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
             when(rxVerID.detectFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenCallRealMethod();
             when(rxVerID.convertFaceToRecognizableFace(any(), any())).thenCallRealMethod();
+            when(rxVerID.convertFaceToRecognizableFace(any(VerID.class), any(), any())).thenCallRealMethod();
 
             TestObserver<RecognizableFace> faceTestObserver = rxVerID.detectRecognizableFacesInImage(mockImage, 1).test();
 
@@ -292,7 +299,9 @@ public class RxVerIDTest {
             RxVerID rxVerID = mock(RxVerID.class);
             when(rxVerID.getVerID()).thenReturn(Single.just(mockVerID));
             when(rxVerID.convertFaceToRecognizableFace(any(), any())).thenCallRealMethod();
+            when(rxVerID.convertFaceToRecognizableFace(any(VerID.class), any(), any())).thenCallRealMethod();
             when(rxVerID.detectFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenCallRealMethod();
             when(rxVerID.detectRecognizableFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
 
             TestObserver<RecognizableFace> faceTestObserver = rxVerID.detectRecognizableFacesInImage(mockImage, 1).test();
@@ -336,11 +345,12 @@ public class RxVerIDTest {
             VerIDImage mockImage = mock(VerIDImage.class);
             RxVerID rxVerID = mock(RxVerID.class);
             when(rxVerID.getVerID()).thenReturn(Single.just(mockVerID));
-            when(rxVerID.getUserIdentification()).thenCallRealMethod();
+            when(rxVerID.getUserIdentification(any(VerID.class))).thenCallRealMethod();
             when(rxVerID.identifyUsersInImage(any(VerIDImage.class))).thenCallRealMethod();
-            when(rxVerID.detectFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
-            when(rxVerID.detectRecognizableFacesInImage(any(VerIDImage.class), anyInt())).thenCallRealMethod();
-            when(rxVerID.convertFaceToRecognizableFace(any(), any())).thenCallRealMethod();
+            when(rxVerID.identifyUsersInImage(any(VerID.class), any(VerIDImage.class))).thenCallRealMethod();
+            when(rxVerID.detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectRecognizableFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenCallRealMethod();
+            when(rxVerID.convertFaceToRecognizableFace(any(VerID.class), any(), any())).thenCallRealMethod();
             Pair<String, Float> score = new Pair<>(testUserId, testScore);
             Pair<String, Float> score2 = new Pair<>(testUserId2, testScore2);
 
@@ -369,10 +379,13 @@ public class RxVerIDTest {
             String exceptionMessage = "Test message";
             UserIdentification mockUserIdentification = mock(UserIdentification.class);
             VerIDImage mockImage = mock(VerIDImage.class);
+            VerID verID = mock(VerID.class);
             RxVerID rxVerID = mock(RxVerID.class);
-            when(rxVerID.getUserIdentification()).thenReturn(Single.just(mockUserIdentification));
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+            when(rxVerID.getUserIdentification(any(VerID.class))).thenReturn(Single.just(mockUserIdentification));
             when(rxVerID.identifyUsersInImage(any(VerIDImage.class))).thenCallRealMethod();
-            when(rxVerID.detectRecognizableFacesInImage(any(VerIDImage.class), anyInt())).thenReturn(Observable.error(new Exception(exceptionMessage)));
+            when(rxVerID.identifyUsersInImage(any(VerID.class), any(VerIDImage.class))).thenCallRealMethod();
+            when(rxVerID.detectRecognizableFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenReturn(Observable.error(new Exception(exceptionMessage)));
 
             TestObserver<Pair<String,Float>> testObserver = rxVerID.identifyUsersInImage(mockImage).test();
 
@@ -390,12 +403,15 @@ public class RxVerIDTest {
         try {
             String exceptionMessage = "Test message";
             VerIDImage mockImage = mock(VerIDImage.class);
+            VerID verID = mock(VerID.class);
             RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
             UserIdentification mockUserIdentification = mock(UserIdentification.class);
             when(mockUserIdentification.identifyUsersInFace(any())).thenThrow(new Exception(exceptionMessage));
-            when(rxVerID.getUserIdentification()).thenReturn(Single.just(mockUserIdentification));
+            when(rxVerID.getUserIdentification(any(VerID.class))).thenReturn(Single.just(mockUserIdentification));
             when(rxVerID.identifyUsersInImage(any(VerIDImage.class))).thenCallRealMethod();
-            when(rxVerID.detectRecognizableFacesInImage(any(VerIDImage.class), anyInt())).thenReturn(Observable.just(mock(RecognizableFace.class)));
+            when(rxVerID.identifyUsersInImage(any(VerID.class), any(VerIDImage.class))).thenCallRealMethod();
+            when(rxVerID.detectRecognizableFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt())).thenReturn(Observable.just(mock(RecognizableFace.class)));
 
             TestObserver<Pair<String,Float>> testObserver = rxVerID.identifyUsersInImage(mockImage).test();
 
@@ -434,12 +450,13 @@ public class RxVerIDTest {
             RxVerID rxVerID = mock(RxVerID.class);
             doReturn(Single.just(mockImage)).when(rxVerID).convertUriToVerIDImage(any());
             doReturn(Single.just(mockVerID)).when(rxVerID).getVerID();
-            doCallRealMethod().when(rxVerID).getUserIdentification();
+            doCallRealMethod().when(rxVerID).getUserIdentification(any(VerID.class));
             doCallRealMethod().when(rxVerID).identifyUsersInImage(any(Uri.class));
             doCallRealMethod().when(rxVerID).identifyUsersInImage(any(VerIDImage.class));
-            doCallRealMethod().when(rxVerID).detectRecognizableFacesInImage(any(VerIDImage.class), anyInt());
-            doCallRealMethod().when(rxVerID).convertFaceToRecognizableFace(any(), any());
-            doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerIDImage.class), anyInt());
+            doCallRealMethod().when(rxVerID).identifyUsersInImage(any(VerID.class), any(VerIDImage.class));
+            doCallRealMethod().when(rxVerID).detectRecognizableFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt());
+            doCallRealMethod().when(rxVerID).convertFaceToRecognizableFace(any(VerID.class), any(), any());
+            doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt());
             Pair<String, Float> score = new Pair<>(testUserId, testScore);
             Pair<String, Float> score2 = new Pair<>(testUserId2, testScore2);
 
@@ -489,13 +506,14 @@ public class RxVerIDTest {
             RxVerID rxVerID = mock(RxVerID.class);
             doReturn(Single.just(mockImage)).when(rxVerID).convertBitmapToVerIDImage(any(), anyInt());
             doReturn(Single.just(mockVerID)).when(rxVerID).getVerID();
-            doCallRealMethod().when(rxVerID).getUserIdentification();
+            doCallRealMethod().when(rxVerID).getUserIdentification(any(VerID.class));
             doCallRealMethod().when(rxVerID).identifyUsersInImage(any(Bitmap.class));
             doCallRealMethod().when(rxVerID).identifyUsersInImage(any(Bitmap.class), anyInt());
             doCallRealMethod().when(rxVerID).identifyUsersInImage(any(VerIDImage.class));
-            doCallRealMethod().when(rxVerID).detectRecognizableFacesInImage(any(VerIDImage.class), anyInt());
-            doCallRealMethod().when(rxVerID).convertFaceToRecognizableFace(any(), any());
-            doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerIDImage.class), anyInt());
+            doCallRealMethod().when(rxVerID).identifyUsersInImage(any(VerID.class), any(VerIDImage.class));
+            doCallRealMethod().when(rxVerID).detectRecognizableFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt());
+            doCallRealMethod().when(rxVerID).convertFaceToRecognizableFace(any(VerID.class), any(), any());
+            doCallRealMethod().when(rxVerID).detectFacesInImage(any(VerID.class), any(VerIDImage.class), anyInt());
             Pair<String, Float> score = new Pair<>(testUserId, testScore);
             Pair<String, Float> score2 = new Pair<>(testUserId2, testScore2);
 
@@ -622,11 +640,11 @@ public class RxVerIDTest {
             VerIDImage mockImage = mock(VerIDImage.class);
             RecognizableFace mockFace = mock(RecognizableFace.class);
             RxVerID rxVerID = mock(RxVerID.class);
-            when(rxVerID.detectRecognizableFacesInBitmap(any(), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectRecognizableFacesInImage(any(Bitmap.class), anyInt())).thenCallRealMethod();
             when(rxVerID.convertBitmapToVerIDImage(any(), anyInt())).thenReturn(Single.just(mockImage));
             when(rxVerID.detectRecognizableFacesInImage(any(VerIDImage.class), anyInt())).thenReturn(Observable.just(mockFace));
 
-            TestObserver<RecognizableFace> testObserver = rxVerID.detectRecognizableFacesInBitmap(mock(Bitmap.class),1).test();
+            TestObserver<RecognizableFace> testObserver = rxVerID.detectRecognizableFacesInImage(mock(Bitmap.class),1).test();
 
             testObserver
                     .assertSubscribed()
@@ -644,11 +662,11 @@ public class RxVerIDTest {
             VerIDImage mockImage = mock(VerIDImage.class);
             RecognizableFace mockFace = mock(RecognizableFace.class);
             RxVerID rxVerID = mock(RxVerID.class);
-            when(rxVerID.detectRecognizableFacesInBitmap(any(), anyInt(), anyInt())).thenCallRealMethod();
+            when(rxVerID.detectRecognizableFacesInImage(any(), anyInt(), anyInt())).thenCallRealMethod();
             when(rxVerID.convertBitmapToVerIDImage(any(), anyInt())).thenReturn(Single.just(mockImage));
             when(rxVerID.detectRecognizableFacesInImage(any(VerIDImage.class), anyInt())).thenReturn(Observable.just(mockFace));
 
-            TestObserver<RecognizableFace> testObserver = rxVerID.detectRecognizableFacesInBitmap(mock(Bitmap.class), ExifInterface.ORIENTATION_NORMAL, 1).test();
+            TestObserver<RecognizableFace> testObserver = rxVerID.detectRecognizableFacesInImage(mock(Bitmap.class), ExifInterface.ORIENTATION_NORMAL, 1).test();
 
             testObserver
                     .assertSubscribed()

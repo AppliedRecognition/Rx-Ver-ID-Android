@@ -14,7 +14,9 @@ import androidx.exifinterface.media.ExifInterface;
 
 import com.appliedrec.verid.core.Face;
 import com.appliedrec.verid.core.IFaceDetectionFactory;
+import com.appliedrec.verid.core.IFaceRecognition;
 import com.appliedrec.verid.core.IFaceRecognitionFactory;
+import com.appliedrec.verid.core.IRecognizable;
 import com.appliedrec.verid.core.IUserManagementFactory;
 import com.appliedrec.verid.core.ImageUtils;
 import com.appliedrec.verid.core.RecognizableFace;
@@ -28,17 +30,28 @@ import org.javatuples.Pair;
 import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.schedulers.Schedulers;
 
+/**
+ * Reactive implementation of common Ver-ID SDK tasks
+ * @since 1.0.0
+ */
 public class RxVerID {
 
     // region Builder
 
+    /**
+     * Builder class for RxVerID
+     * @since 1.0.0
+     */
     public static class Builder {
 
         static class Configuration extends Object {
@@ -89,6 +102,11 @@ public class RxVerID {
 
         private Configuration configuration = new Configuration();
 
+        /**
+         * Constructor
+         * @param context Context
+         * @since 1.0.0
+         */
         public Builder(Context context) {
             this.configuration.context = context;
         }
@@ -97,21 +115,44 @@ public class RxVerID {
             return configuration;
         }
 
+        /**
+         * Set face detection factory
+         * @param faceDetectionFactory Instance of {@link IFaceDetectionFactory}
+         * @return {@link Builder}
+         * @since 1.0.0
+         */
         public Builder setFaceDetectionFactory(IFaceDetectionFactory faceDetectionFactory) {
             getConfiguration().setFaceDetectionFactory(faceDetectionFactory);
             return this;
         }
 
+        /**
+         * Set face recognition factory
+         * @param faceRecognitionFactory Instance of {@link IFaceRecognitionFactory}
+         * @return {@link Builder}
+         * @since 1.0.0
+         */
         public Builder setFaceRecognitionFactory(IFaceRecognitionFactory faceRecognitionFactory) {
             getConfiguration().setFaceRecognitionFactory(faceRecognitionFactory);
             return this;
         }
 
+        /**
+         * Set user management factory
+         * @param userManagementFactory Instance of {@link IUserManagementFactory}
+         * @return {@link Builder}
+         * @since 1.0.0
+         */
         public Builder setUserManagementFactory(IUserManagementFactory userManagementFactory) {
             getConfiguration().setUserManagementFactory(userManagementFactory);
             return this;
         }
 
+        /**
+         * Build an instance of {@link RxVerID}
+         * @return Instance of {@link RxVerID}
+         * @since 1.0.0
+         */
         public RxVerID build() {
             RxVerID rxVerID = getInstanceForConfiguration(getConfiguration());
             if (rxVerID == null) {
@@ -157,21 +198,26 @@ public class RxVerID {
 
     // endregion
 
+    /**
+     * Context used by this instance
+     * @return Context
+     * @since 1.0.0
+     */
     public Context getContext() {
         return context;
     }
 
     // region Factory getters
 
-    public IFaceDetectionFactory getFaceDetectionFactory() {
+    IFaceDetectionFactory getFaceDetectionFactory() {
         return faceDetectionFactory;
     }
 
-    public IFaceRecognitionFactory getFaceRecognitionFactory() {
+    IFaceRecognitionFactory getFaceRecognitionFactory() {
         return faceRecognitionFactory;
     }
 
-    public IUserManagementFactory getUserManagementFactory() {
+    IUserManagementFactory getUserManagementFactory() {
         return userManagementFactory;
     }
 
@@ -183,6 +229,11 @@ public class RxVerID {
 
     // region Ver-ID
 
+    /**
+     * Get a Ver-ID instance
+     * @return Single whose value is an instance of Ver-ID
+     * @since 1.0.0
+     */
     public Single<VerID> getVerID() {
         synchronized (veridLock) {
             if (verID != null) {
@@ -213,7 +264,7 @@ public class RxVerID {
                     emitter.onError(e);
                 }
             }
-        });
+        }).subscribeOn(Schedulers.io()).cast(VerID.class);
     }
 
     // endregion
@@ -224,6 +275,12 @@ public class RxVerID {
     @Retention(RetentionPolicy.SOURCE)
     public @interface ExifOrientation{};
 
+    /**
+     * Get EXIF tags in an image at the given URI
+     * @param uri URI of the image
+     * @return Single whose return value is an ExifInterface object
+     * @since 1.0.0
+     */
     Single<ExifInterface> getExifFromUri(Uri uri) {
         return Single.create(emitter -> {
             try {
@@ -237,15 +294,33 @@ public class RxVerID {
         });
     }
 
+    /**
+     * Decode a bitmap from an input stream
+     * @param inputStream Input stream
+     * @return Decoded bitmap
+     * @since 1.0.0
+     */
     Bitmap bitmapFromStream(InputStream inputStream) {
         return BitmapFactory.decodeStream(inputStream);
     }
 
+    /**
+     * Get EXIF orientation of an image at the given URI
+     * @param imageUri URI of the image
+     * @return Single whose value is an integer value of the EXIF orientation tag
+     * @since 1.0.0
+     */
     public Single<Integer> getExifOrientationOfImage(Uri imageUri) {
         return getExifFromUri(imageUri)
                 .map(exifInterface -> exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL));
     }
 
+    /**
+     * Convert image at the given URI to a bitmap
+     * @param imageUri URI of the image to convert
+     * @return Single whose value is a bitmap
+     * @since 1.0.0
+     */
     public Single<Bitmap> convertUriToBitmap(Uri imageUri) {
         return Single.create(emitter -> {
             try {
@@ -259,12 +334,25 @@ public class RxVerID {
         });
     }
 
+    /**
+     * Convert image at the given URI to Ver-ID image
+     * @param imageUri URI of the image to convert
+     * @return Single whose value is a {@link VerIDImage Ver-ID image}
+     * @since 1.0.0
+     */
     public Single<VerIDImage> convertUriToVerIDImage(Uri imageUri) {
         return convertUriToBitmap(imageUri)
                 .flatMap(bitmap -> getExifOrientationOfImage(imageUri)
                         .flatMap(exifOrientation -> convertBitmapToVerIDImage(bitmap, exifOrientation)));
     }
 
+    /**
+     * Convert bitmap to Ver-ID image
+     * @param bitmap Bitmap to convert
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @return Single whose value is a {@link VerIDImage Ver-ID image}
+     * @since 1.0.0
+     */
     public Single<VerIDImage> convertBitmapToVerIDImage(Bitmap bitmap, @ExifOrientation int exifOrientation) {
         return Single.just(new VerIDImage(bitmap, exifOrientation));
     }
@@ -273,84 +361,334 @@ public class RxVerID {
 
     // region Recognizable face detection
 
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param imageUri URI of the image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.1.0
+     */
     public Observable<RecognizableFace> detectRecognizableFacesInImage(Uri imageUri, int limit) {
         return convertUriToVerIDImage(imageUri)
                 .flatMapObservable(image -> detectRecognizableFacesInImage(image, limit));
     }
 
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param image Image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.0.0
+     */
     public Observable<RecognizableFace> detectRecognizableFacesInImage(VerIDImage image, int limit) {
         return detectFacesInImage(image, limit)
                 .flatMap(face -> convertFaceToRecognizableFace(image, face));
     }
 
-    public Observable<RecognizableFace> detectRecognizableFacesInBitmap(Bitmap bitmap, @ExifOrientation int exifOrientation, int limit) {
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param bitmap Bitmap in which to detect faces
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.0.0
+     */
+    public Observable<RecognizableFace> detectRecognizableFacesInImage(Bitmap bitmap, @ExifOrientation int exifOrientation, int limit) {
         return convertBitmapToVerIDImage(bitmap, exifOrientation)
                 .flatMapObservable(image -> detectRecognizableFacesInImage(image, limit));
     }
 
-    public Observable<RecognizableFace> detectRecognizableFacesInBitmap(Bitmap bitmap, int limit) {
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param bitmap Bitmap in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.0.0
+     */
+    public Observable<RecognizableFace> detectRecognizableFacesInImage(Bitmap bitmap, int limit) {
         return convertBitmapToVerIDImage(bitmap, ExifInterface.ORIENTATION_NORMAL)
                 .flatMapObservable(image -> detectRecognizableFacesInImage(image, limit));
+    }
+
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param verID Ver-ID instance
+     * @param imageUri URI of the image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<RecognizableFace> detectRecognizableFacesInImage(VerID verID, Uri imageUri, int limit) {
+        return convertUriToVerIDImage(imageUri)
+                .flatMapObservable(image -> detectRecognizableFacesInImage(verID, image, limit));
+    }
+
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param verID Ver-ID instance
+     * @param image Image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<RecognizableFace> detectRecognizableFacesInImage(VerID verID, VerIDImage image, int limit) {
+        return detectFacesInImage(verID, image, limit)
+                .flatMap(face -> convertFaceToRecognizableFace(verID, image, face));
+    }
+
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param verID Ver-ID instance
+     * @param bitmap Bitmap in which to detect faces
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<RecognizableFace> detectRecognizableFacesInImage(VerID verID, Bitmap bitmap, @ExifOrientation int exifOrientation, int limit) {
+        return convertBitmapToVerIDImage(bitmap, exifOrientation)
+                .flatMapObservable(image -> detectRecognizableFacesInImage(verID, image, limit));
+    }
+
+    /**
+     * Detect faces that can be used for face recognition in image
+     * @param verID Ver-ID instance
+     * @param bitmap Bitmap in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are recognizable faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<RecognizableFace> detectRecognizableFacesInImage(VerID verID, Bitmap bitmap, int limit) {
+        return convertBitmapToVerIDImage(bitmap, ExifInterface.ORIENTATION_NORMAL)
+                .flatMapObservable(image -> detectRecognizableFacesInImage(verID, image, limit));
     }
 
     // endregion
 
     // region Face detection
 
+    /**
+     * Detect faces in image
+     * @param imageUri URI of the image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.0.0
+     */
     public Observable<Face> detectFacesInImage(Uri imageUri, int limit) {
         return convertUriToVerIDImage(imageUri)
                 .flatMapObservable(image -> detectFacesInImage(image, limit));
     }
 
+    /**
+     * Detect faces in image
+     * @param image Image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.0.0
+     */
     public Observable<Face> detectFacesInImage(VerIDImage image, int limit) {
         return getVerID()
-                .flatMapObservable(verID -> observer -> {
-                    try {
-                        Face[] faces = verID.getFaceDetection().detectFacesInImage(image, limit, 0);
-                        for (Face face : faces) {
-                            observer.onNext(face);
-                        }
-                        observer.onComplete();
-                    } catch (Exception e) {
-                        observer.onError(e);
-                    }
-                });
+                .flatMapObservable(verID -> detectFacesInImage(verID, image, limit));
     }
 
+    /**
+     * Detect faces in image
+     * @param bitmap Bitmap in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.0.0
+     */
     public Observable<Face> detectFacesInImage(Bitmap bitmap, int limit) {
         return detectFacesInImage(bitmap, ExifInterface.ORIENTATION_NORMAL, limit);
     }
 
+    /**
+     * Detect faces in image
+     * @param bitmap Bitmap in which to detect faces
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.0.0
+     */
     public Observable<Face> detectFacesInImage(Bitmap bitmap, @ExifOrientation int exifOrientation, int limit) {
         return convertBitmapToVerIDImage(bitmap, exifOrientation)
                 .flatMapObservable(image -> detectFacesInImage(image, limit));
+    }
+
+    /**
+     * Detect faces in image
+     * @param verID Ver-ID instance
+     * @param imageUri URI of the image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<Face> detectFacesInImage(VerID verID, Uri imageUri, int limit) {
+        return convertUriToVerIDImage(imageUri)
+                .flatMapObservable(image -> detectFacesInImage(verID, image, limit));
+    }
+
+    /**
+     * Detect faces in image
+     * @param verID Ver-ID instance
+     * @param image Image in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<Face> detectFacesInImage(VerID verID, VerIDImage image, int limit) {
+        return Observable.create(observer -> {
+            try {
+                Face[] faces = verID.getFaceDetection().detectFacesInImage(image, limit, 0);
+                for (Face face : faces) {
+                    observer.onNext(face);
+                }
+                observer.onComplete();
+            } catch (Exception e) {
+                observer.onError(e);
+            }
+        });
+    }
+
+    /**
+     * Detect faces in image
+     * @param verID Ver-ID instance
+     * @param bitmap Bitmap in which to detect faces
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<Face> detectFacesInImage(VerID verID, Bitmap bitmap, int limit) {
+        return detectFacesInImage(verID, bitmap, ExifInterface.ORIENTATION_NORMAL, limit);
+    }
+
+    /**
+     * Detect faces in image
+     * @param verID Ver-ID instance
+     * @param bitmap Bitmap in which to detect faces
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @param limit Maximum number of faces to find
+     * @return Observable whose values are faces detected in the image
+     * @since 1.1.0
+     */
+    public Observable<Face> detectFacesInImage(VerID verID, Bitmap bitmap, @ExifOrientation int exifOrientation, int limit) {
+        return convertBitmapToVerIDImage(bitmap, exifOrientation)
+                .flatMapObservable(image -> detectFacesInImage(verID, image, limit));
     }
 
     // endregion
 
     // region User identification
 
+    /**
+     * Get user identification
+     * @return Single whose value is an instance of UserIdentification
+     * @since 1.0.0
+     */
     public Single<UserIdentification> getUserIdentification() {
         return getVerID().map(UserIdentification::new);
     }
 
+    /**
+     * Identify users in an image
+     * @param imageUri URI of the image in which to identify the users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.0.0
+     */
     public Observable<Pair<String,Float>> identifyUsersInImage(Uri imageUri) {
         return convertUriToVerIDImage(imageUri)
                 .flatMapObservable(this::identifyUsersInImage);
     }
 
+    /**
+     * Identify users in an image
+     * @param bitmap Bitmap in which to identify the users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.0.0
+     */
     public Observable<Pair<String,Float>> identifyUsersInImage(Bitmap bitmap) {
         return identifyUsersInImage(bitmap, ExifInterface.ORIENTATION_NORMAL);
     }
 
+    /**
+     * Identify users in an image
+     * @param bitmap Bitmap in which to identify the users
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.0.0
+     */
     public Observable<Pair<String,Float>> identifyUsersInImage(Bitmap bitmap, @ExifOrientation int exifOrientation) {
         return convertBitmapToVerIDImage(bitmap, exifOrientation)
                 .flatMapObservable(this::identifyUsersInImage);
     }
 
+    /**
+     * Identify users in an image
+     * @param image Image in which to identify the users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.0.0
+     */
     public Observable<Pair<String,Float>> identifyUsersInImage(VerIDImage image) {
-        Observable<Pair<String,Float>> observable = getUserIdentification()
-                .flatMapObservable(userIdentification -> detectRecognizableFacesInImage(image, 1)
+        return getVerID()
+                .flatMapObservable(verID -> identifyUsersInImage(verID, image));
+    }
+
+    /**
+     * Get user identification
+     * @param verID Ver-ID instance
+     * @return Single whose value is an instance of UserIdentification
+     * @since 1.1.0
+     */
+    public Single<UserIdentification> getUserIdentification(VerID verID) {
+        return Single.just(new UserIdentification(verID));
+    }
+
+    /**
+     * Identify users in an image
+     * @param verID Ver-ID instance
+     * @param imageUri URI of the image in which to identify the users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.1.0
+     */
+    public Observable<Pair<String,Float>> identifyUsersInImage(VerID verID, Uri imageUri) {
+        return convertUriToVerIDImage(imageUri)
+                .flatMapObservable(image -> identifyUsersInImage(verID, image));
+    }
+
+    /**
+     * Identify users in an image
+     * @param verID Ver-ID instance
+     * @param bitmap Bitmap in which to identify the users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.1.0
+     */
+    public Observable<Pair<String,Float>> identifyUsersInImage(VerID verID, Bitmap bitmap) {
+        return identifyUsersInImage(verID, bitmap, ExifInterface.ORIENTATION_NORMAL);
+    }
+
+    /**
+     * Identify users in an image
+     * @param verID Ver-ID instance
+     * @param bitmap Bitmap in which to identify the users
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.1.0
+     */
+    public Observable<Pair<String,Float>> identifyUsersInImage(VerID verID, Bitmap bitmap, @ExifOrientation int exifOrientation) {
+        return convertBitmapToVerIDImage(bitmap, exifOrientation)
+                .flatMapObservable(image -> identifyUsersInImage(verID, image));
+    }
+
+    /**
+     * Identify users in an image
+     * @param verID Ver-ID instance
+     * @param image Image in which to identify the users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.1.0
+     */
+    public Observable<Pair<String,Float>> identifyUsersInImage(VerID verID, VerIDImage image) {
+        Observable<Pair<String,Float>> observable = getUserIdentification(verID)
+                .flatMapObservable(userIdentification -> detectRecognizableFacesInImage(verID, image, 1)
                         .flatMap(face -> observer -> {
                             try {
                                 Map<String,Float> userMap = userIdentification.identifyUsersInFace(face);
@@ -376,33 +714,64 @@ public class RxVerID {
 
     // region Face to recognizable face conversion
 
+    /**
+     * Convert a face detected in an image into a face that can be used for face recognition
+     * @param image Image in which the face was detected
+     * @param face Face to convert to recognizable face
+     * @return Observable whose values are recognizable faces
+     * @since 1.0.0
+     */
     public Observable<RecognizableFace> convertFaceToRecognizableFace(VerIDImage image, Face face) {
         return getVerID()
-                .toObservable()
-                .flatMap(verID -> observer -> {
-                    try {
-                        RecognizableFace[] recognizableFaces = verID.getFaceRecognition().createRecognizableFacesFromFaces(new Face[]{face}, image);
-                        if (recognizableFaces.length == 0) {
-                            throw new Exception("Failed to create recognizable face");
-                        }
-                        for (RecognizableFace recognizableFace : recognizableFaces) {
-                            observer.onNext(recognizableFace);
-                        }
-                        observer.onComplete();
-                    } catch (Exception e) {
-                        observer.onError(e);
-                    }
-                });
+                .flatMapObservable(verID -> convertFaceToRecognizableFace(verID, image, face));
+    }
+
+    /**
+     * Convert a face detected in an image into a face that can be used for face recognition
+     * @param verID Ver-ID instance
+     * @param image Image in which the face was detected
+     * @param face Face to convert to recognizable face
+     * @return Observable whose values are recognizable faces
+     * @since 1.1.0
+     */
+    public Observable<RecognizableFace> convertFaceToRecognizableFace(VerID verID, VerIDImage image, Face face) {
+        return Observable.create(observer -> {
+            try {
+                RecognizableFace[] recognizableFaces = verID.getFaceRecognition().createRecognizableFacesFromFaces(new Face[]{face}, image);
+                if (recognizableFaces.length == 0) {
+                    throw new Exception("Failed to create recognizable face");
+                }
+                for (RecognizableFace recognizableFace : recognizableFaces) {
+                    observer.onNext(recognizableFace);
+                }
+                observer.onComplete();
+            } catch (Exception e) {
+                observer.onError(e);
+            }
+        });
     }
 
     // endregion
 
     // region Cropping image to face
 
+    /**
+     * Transformation matrix that rights the image with the given EXIF orientation
+     * @param orientation EXIF orientation
+     * @return Single whose return value is a matrix
+     * @since 1.0.0
+     */
     Single<Matrix> getTransformMatrixForExifOrientation(@ExifOrientation int orientation) {
         return Single.just(ImageUtils.getMatrixFromExifOrientation(orientation));
     }
 
+    /**
+     * Crop bitmap to the bounds of a face
+     * @param bitmap Bitmap to crop
+     * @param face Face to whose bounds the image should be cropped
+     * @return Single whose return value is a bitmap of the image cropped to the bounds of the face
+     * @since 1.0.0
+     */
     public Single<Bitmap> cropImageToFace(@NonNull Bitmap bitmap, @NonNull Face face) {
         return Single.create(emitter -> {
             Rect cropRect = new Rect();
@@ -416,6 +785,13 @@ public class RxVerID {
         });
     }
 
+    /**
+     * Crop image to the bounds of a face
+     * @param imageUri URI of the image to crop
+     * @param face Face to whose bounds the image should be cropped
+     * @return Single whose return value is a bitmap of the image cropped to the bounds of the face
+     * @since 1.0.0
+     */
     public Single<Bitmap> cropImageToFace(@NonNull Uri imageUri, @NonNull Face face) {
         return getExifOrientationOfImage(imageUri)
                 .flatMap(this::getTransformMatrixForExifOrientation)
@@ -427,6 +803,206 @@ public class RxVerID {
                             return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
                         }))
                 .flatMap(bitmap -> cropImageToFace(bitmap, face));
+    }
+
+    // endregion
+
+    // region Face comparison
+
+    /**
+     * Compare face to faces
+     * @param face Face to compare to other faces
+     * @param faces Faces to compare to the face
+     * @return Single whose return value is a face comparison score. If the score exceeds {@link IFaceRecognition#getAuthenticationThreshold() authentication threshold} the faces can be considered authenticated against the face.
+     * @since 1.1.0
+     * @see IFaceRecognition#getAuthenticationThreshold()
+     */
+    public Single<Float> compareFaceToFaces(IRecognizable face, RecognizableFace[] faces) {
+        return getVerID()
+                .flatMap(verID -> compareFaceToFaces(verID, face, faces));
+    }
+
+    /**
+     * Compare face to faces
+     * @param verID Ver-ID instance
+     * @param face Face to compare to other faces
+     * @param faces Faces to compare to the face
+     * @return Single whose return value is a face comparison score. If the score exceeds {@link IFaceRecognition#getAuthenticationThreshold() authentication threshold} the faces can be considered authenticated against the face.
+     * @since 1.1.0
+     * @see IFaceRecognition#getAuthenticationThreshold()
+     */
+    public Single<Float> compareFaceToFaces(VerID verID, IRecognizable face, RecognizableFace[] faces) {
+        return Single.create(emitter -> {
+            try {
+                float score = verID.getFaceRecognition().compareSubjectFacesToFaces(new IRecognizable[]{face}, faces);
+                emitter.onSuccess(score);
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        });
+    }
+
+    // endregion
+
+    // region User management
+
+    /**
+     * Assign faces to user
+     * @param faces Faces to assign to the user
+     * @param user User to whom the faces should be assigned
+     * @return Completable
+     * @since 1.1.0
+     */
+    public Completable assignFacesToUser(IRecognizable[] faces, String user) {
+        return getVerID()
+                .flatMapCompletable(verID -> assignFacesToUser(verID, faces, user));
+    }
+
+    /**
+     * Assign faces to user
+     * @param verID Ver-ID instance
+     * @param faces Faces to assign to the user
+     * @param user User to whom the faces should be assigned
+     * @return Completable
+     * @since 1.1.0
+     */
+    public Completable assignFacesToUser(VerID verID, IRecognizable[] faces, String user) {
+        return Completable.create(emitter -> {
+            try {
+                verID.getUserManagement().assignFacesToUser(faces, user);
+                emitter.onComplete();
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        });
+    }
+
+    /**
+     * Delete a user
+     * @param user Identifier of the user who is to be deleted
+     * @return Completable
+     * @since 1.1.0
+     */
+    public Completable deleteUser(String user) {
+        return getVerID()
+                .flatMapCompletable(verID -> deleteUser(verID, user));
+    }
+
+    /**
+     * Delete a user
+     * @param verID Ver-ID instance
+     * @param user Identifier of the user who is to be deleted
+     * @return Completable
+     * @since 1.1.0
+     */
+    public Completable deleteUser(VerID verID, String user) {
+        return Completable.create(emitter -> {
+            try {
+                verID.getUserManagement().deleteUsers(new String[]{user});
+                emitter.onComplete();
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        });
+    }
+
+    /**
+     * Get users
+     * @return Observable whose return values are identifiers of users who have at least one face registered
+     * @since 1.1.0
+     */
+    public Observable<String> getUsers() {
+        return getVerID()
+                .flatMapObservable(RxVerID.this::getUsers);
+    }
+
+    /**
+     * Get users
+     * @param verID Ver-ID instance
+     * @return Observable whose return values are identifiers of users who have at least one face registered
+     * @since 1.1.0
+     */
+    public Observable<String> getUsers(VerID verID) {
+        return Observable.create(emitter -> {
+            try {
+                String[] users = verID.getUserManagement().getUsers();
+                Arrays.sort(users);
+                for (String user : users) {
+                    emitter.onNext(user);
+                }
+                emitter.onComplete();
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        });
+    }
+
+    /**
+     * Get faces of user
+     * @param user Identifier for the user whose faces to get
+     * @return Observable whose return value is a face of the user
+     * @since 1.1.0
+     */
+    public Observable<IRecognizable> getFacesOfUser(String user) {
+        return getVerID()
+                .flatMapObservable(verID -> getFacesOfUser(verID, user));
+    }
+
+    /**
+     * Get faces of user
+     * @param verID Ver-ID instance
+     * @param user Identifier for the user whose faces to get
+     * @return Observable whose return value is a face of the user
+     * @since 1.1.0
+     */
+    public Observable<IRecognizable> getFacesOfUser(VerID verID, String user) {
+        return Observable.create(emitter -> {
+            try {
+                IRecognizable[] faces = verID.getUserManagement().getFacesOfUser(user);
+                for (IRecognizable face : faces) {
+                    emitter.onNext(face);
+                }
+                emitter.onComplete();
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        });
+    }
+
+    // endregion
+
+    // region User authentication
+
+    /**
+     * Authenticate user in faces
+     * @param user Identifier for the user to be authenticated
+     * @param faces Faces to authenticate as the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.1.0
+     */
+    public Single<Boolean> authenticateUserInFaces(String user, RecognizableFace[] faces) {
+        return getVerID()
+                .flatMap(verID -> authenticateUserInFaces(verID, user, faces));
+    }
+
+    /**
+     * Authenticate user in faces
+     * @param verID Ver-ID instance
+     * @param user Identifier for the user to be authenticated
+     * @param faces Faces to authenticate as the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.1.0
+     */
+    public Single<Boolean> authenticateUserInFaces(VerID verID, String user, RecognizableFace[] faces) {
+        return Single.create(emitter -> {
+            try {
+                IRecognizable[] userFaces = verID.getUserManagement().getFacesOfUser(user);
+                float score = verID.getFaceRecognition().compareSubjectFacesToFaces(userFaces, faces);
+                emitter.onSuccess(score >= verID.getFaceRecognition().getAuthenticationThreshold());
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        });
     }
 
     // endregion

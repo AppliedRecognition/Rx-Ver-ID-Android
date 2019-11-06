@@ -142,3 +142,5 @@ rxVerID.identifyUsersInImage(imageUri) // Identify users
       error -> Toast.makeText(context, error.getLocalizedMessage(), Toast.LENGTH_SHORT).show()
     );
 ~~~
+
+### [Reference documentation](https://appliedrecognition.github.io/Rx-Ver-ID-Android/)

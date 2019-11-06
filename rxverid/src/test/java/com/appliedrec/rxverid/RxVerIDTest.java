@@ -2,13 +2,17 @@ package com.appliedrec.rxverid;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 
 import androidx.exifinterface.media.ExifInterface;
 
+import com.appliedrec.verid.core.Bearing;
+import com.appliedrec.verid.core.DetectedFace;
 import com.appliedrec.verid.core.Face;
+import com.appliedrec.verid.core.FaceDetectionRecognitionFactory;
 import com.appliedrec.verid.core.IFaceDetection;
 import com.appliedrec.verid.core.IFaceDetectionFactory;
 import com.appliedrec.verid.core.IFaceRecognition;
@@ -21,8 +25,10 @@ import com.appliedrec.verid.core.UserIdentification;
 import com.appliedrec.verid.core.VerID;
 import com.appliedrec.verid.core.VerIDFactory;
 import com.appliedrec.verid.core.VerIDImage;
+import com.appliedrec.verid.core.VerIDSessionResult;
 
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +47,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doCallRealMethod;
@@ -57,11 +64,17 @@ public class RxVerIDTest {
     @Test
     public void test_getVerID_succeeds() {
         try {
+            FaceDetectionRecognitionFactory faceDetectionRecognitionFactory = mock(FaceDetectionRecognitionFactory.class);
             VerID mockVerID = mock(VerID.class);
             RxVerID mockRxVerID = mock(RxVerID.class);
             VerIDFactory mockVerIDFactory = mock(VerIDFactory.class);
-            doReturn(mockVerID).when(mockVerIDFactory).createVerIDSync();
+            doCallRealMethod().when(mockVerIDFactory).setFaceDetectionFactory(any());
+            doCallRealMethod().when(mockVerIDFactory).setFaceRecognitionFactory(any());
+            doCallRealMethod().when(mockVerIDFactory).setUserManagementFactory(any());
             when(mockRxVerID.createVerIDFactory()).thenReturn(mockVerIDFactory);
+            when(mockRxVerID.getFaceDetectionFactory()).thenReturn(faceDetectionRecognitionFactory);
+            when(mockRxVerID.getFaceRecognitionFactory()).thenReturn(faceDetectionRecognitionFactory);
+            when(mockVerIDFactory.createVerIDSync()).thenReturn(mockVerID);
             doCallRealMethod().when(mockRxVerID).getVerID();
 
             TestObserver<VerID> testObserver = mockRxVerID.getVerID().test();
@@ -101,6 +114,13 @@ public class RxVerIDTest {
         } catch (Exception e) {
             fail(e.getLocalizedMessage());
         }
+    }
+
+    @Test
+    public void test_getContext_returnsContext() {
+        Context context = mock(Context.class);
+        RxVerID rxVerID = new RxVerID.Builder(context).build();
+        assertEquals(context, rxVerID.getContext());
     }
 
     @Test
@@ -790,5 +810,623 @@ public class RxVerIDTest {
 
         VerIDFactory verIDFactory = rxVerID.createVerIDFactory();
         assertNotNull(verIDFactory);
+    }
+
+    @Test
+    public void test_correctBitmapOrientation_returnBitmap() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.correctBitmapOrientation(any(), anyInt())).thenCallRealMethod();
+        Matrix matrix = mock(Matrix.class);
+        when(matrix.isIdentity()).thenReturn(true);
+        when(rxVerID.getTransformMatrixForExifOrientation(anyInt())).thenReturn(Single.just(matrix));
+        Bitmap bitmap = mock(Bitmap.class);
+
+        TestObserver<Bitmap> testObserver = rxVerID.correctBitmapOrientation(bitmap, ExifInterface.ORIENTATION_NORMAL).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertNoErrors()
+                .assertValue(bitmap)
+                .assertComplete();
+
+        verify(rxVerID).getTransformMatrixForExifOrientation(anyInt());
+    }
+
+    @Test
+    public void test_compareFaceToFaces_succeeds() {
+        try {
+            float score = 4.5f;
+            IFaceRecognition faceRecognition = mock(IFaceRecognition.class);
+            when(faceRecognition.compareSubjectFacesToFaces(any(), any())).thenReturn(score);
+            VerID verID = mock(VerID.class);
+            when(verID.getFaceRecognition()).thenReturn(faceRecognition);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.compareFaceToFaces(any(), any())).thenCallRealMethod();
+            when(rxVerID.compareFaceToFaces(any(), any(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<Float> testObserver = rxVerID.compareFaceToFaces(mock(IRecognizable.class), new RecognizableFace[]{mock(RecognizableFace.class)}).test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertNoErrors()
+                    .assertValue(score)
+                    .assertComplete();
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_compareFaceToFaces_comparisonFails() {
+        try {
+            String errorMessage = "Test error message";
+            IFaceRecognition faceRecognition = mock(IFaceRecognition.class);
+            when(faceRecognition.compareSubjectFacesToFaces(any(), any())).thenThrow(new Exception(errorMessage));
+            VerID verID = mock(VerID.class);
+            when(verID.getFaceRecognition()).thenReturn(faceRecognition);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.compareFaceToFaces(any(), any())).thenCallRealMethod();
+            when(rxVerID.compareFaceToFaces(any(), any(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<Float> testObserver = rxVerID.compareFaceToFaces(mock(IRecognizable.class), new RecognizableFace[]{mock(RecognizableFace.class)}).test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertErrorMessage(errorMessage)
+                    .assertTerminated();
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_assignFacesToUser_succeeds() {
+        try {
+            IUserManagement userManagement = mock(IUserManagement.class);
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.assignFacesToUser(any(), any())).thenCallRealMethod();
+            when(rxVerID.assignFacesToUser(any(), any(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver testObserver = rxVerID.assignFacesToUser(new IRecognizable[]{mock(IRecognizable.class)}, "test").test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertNoErrors()
+                    .assertComplete();
+
+            verify(userManagement).assignFacesToUser(any(), any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_assignFacesToUser_fails() {
+        try {
+            String errorMessage = "Test error message";
+            IUserManagement userManagement = mock(IUserManagement.class);
+            doThrow(new Exception(errorMessage)).when(userManagement).assignFacesToUser(any(), anyString());
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.assignFacesToUser(any(), any())).thenCallRealMethod();
+            when(rxVerID.assignFacesToUser(any(), any(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver testObserver = rxVerID.assignFacesToUser(new IRecognizable[]{mock(IRecognizable.class)}, "test").test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertErrorMessage(errorMessage)
+                    .assertTerminated();
+
+            verify(userManagement).assignFacesToUser(any(), any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_assignFaceToUser_succeeds() {
+        try {
+            IUserManagement userManagement = mock(IUserManagement.class);
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.assignFaceToUser(any(), any())).thenCallRealMethod();
+            when(rxVerID.assignFaceToUser(any(), any(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver testObserver = rxVerID.assignFaceToUser(mock(IRecognizable.class), "test").test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertNoErrors()
+                    .assertComplete();
+
+            verify(userManagement).assignFacesToUser(any(), any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_assignFaceToUser_fails() {
+        try {
+            String errorMessage = "Test error message";
+            IUserManagement userManagement = mock(IUserManagement.class);
+            doThrow(new Exception(errorMessage)).when(userManagement).assignFacesToUser(any(), anyString());
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.assignFaceToUser(any(), any())).thenCallRealMethod();
+            when(rxVerID.assignFaceToUser(any(), any(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver testObserver = rxVerID.assignFaceToUser(mock(IRecognizable.class), "test").test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertErrorMessage(errorMessage)
+                    .assertTerminated();
+
+            verify(userManagement).assignFacesToUser(any(), any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_deleteUser_succeeds() {
+        try {
+            IUserManagement userManagement = mock(IUserManagement.class);
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.deleteUser(anyString())).thenCallRealMethod();
+            when(rxVerID.deleteUser(any(), anyString())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver testObserver = rxVerID.deleteUser("test").test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertNoErrors()
+                    .assertComplete();
+
+            verify(userManagement).deleteUsers(any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_deleteUser_fails() {
+        try {
+            String errorMessage = "Test error message";
+            IUserManagement userManagement = mock(IUserManagement.class);
+            doThrow(new Exception(errorMessage)).when(userManagement).deleteUsers(any());
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.deleteUser(anyString())).thenCallRealMethod();
+            when(rxVerID.deleteUser(any(), anyString())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver testObserver = rxVerID.deleteUser("test").test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertErrorMessage(errorMessage)
+                    .assertTerminated();
+
+            verify(userManagement).deleteUsers(any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_getUsers_succeeds() {
+        try {
+            String user = "test";
+            IUserManagement userManagement = mock(IUserManagement.class);
+            when(userManagement.getUsers()).thenReturn(new String[]{user});
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.getUsers()).thenCallRealMethod();
+            when(rxVerID.getUsers(any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<String> testObserver = rxVerID.getUsers().test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertNoErrors()
+                    .assertValue(user)
+                    .assertComplete();
+
+            verify(userManagement).getUsers();
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_getUsers_fails() {
+        try {
+            String errorMessage = "Test error message";
+            IUserManagement userManagement = mock(IUserManagement.class);
+            when(userManagement.getUsers()).thenThrow(new Exception(errorMessage));
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.getUsers()).thenCallRealMethod();
+            when(rxVerID.getUsers(any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<String> testObserver = rxVerID.getUsers().test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertErrorMessage(errorMessage)
+                    .assertTerminated();
+
+            verify(userManagement).getUsers();
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_getFacesOfUser_returnsFace() {
+        try {
+            String user = "test";
+            IRecognizable face = mock(IRecognizable.class);
+            IUserManagement userManagement = mock(IUserManagement.class);
+            when(userManagement.getFacesOfUser(anyString())).thenReturn(new IRecognizable[]{face});
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.getFacesOfUser(anyString())).thenCallRealMethod();
+            when(rxVerID.getFacesOfUser(any(), anyString())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<IRecognizable> testObserver = rxVerID.getFacesOfUser(user).test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertNoErrors()
+                    .assertValue(face)
+                    .assertComplete();
+
+            verify(userManagement).getFacesOfUser(eq(user));
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_getFacesOfUser_fails() {
+        try {
+            String user = "test";
+            String errorMessage = "Test error message";
+            IUserManagement userManagement = mock(IUserManagement.class);
+            when(userManagement.getFacesOfUser(anyString())).thenThrow(new Exception(errorMessage));
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.getFacesOfUser(anyString())).thenCallRealMethod();
+            when(rxVerID.getFacesOfUser(any(), anyString())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<IRecognizable> testObserver = rxVerID.getFacesOfUser(user).test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertErrorMessage(errorMessage)
+                    .assertTerminated();
+
+            verify(userManagement).getFacesOfUser(eq(user));
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_authenticateUserInFaces_succeeds() {
+        try {
+            String user = "test";
+            float score = 4.5f;
+            float threshold = 4.0f;
+            IRecognizable face = mock(IRecognizable.class);
+            IUserManagement userManagement = mock(IUserManagement.class);
+            when(userManagement.getFacesOfUser(anyString())).thenReturn(new IRecognizable[]{face});
+            IFaceRecognition faceRecognition = mock(IFaceRecognition.class);
+            when(faceRecognition.compareSubjectFacesToFaces(any(), any())).thenReturn(score);
+            when(faceRecognition.getAuthenticationThreshold()).thenReturn(threshold);
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            when(verID.getFaceRecognition()).thenReturn(faceRecognition);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.authenticateUserInFaces(anyString(), any())).thenCallRealMethod();
+            when(rxVerID.authenticateUserInFaces(any(), anyString(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<Boolean> testObserver = rxVerID.authenticateUserInFaces(user, new RecognizableFace[]{mock(RecognizableFace.class)}).test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertNoErrors()
+                    .assertValue(true)
+                    .assertComplete();
+
+            verify(userManagement).getFacesOfUser(eq(user));
+            verify(faceRecognition).getAuthenticationThreshold();
+            verify(faceRecognition).compareSubjectFacesToFaces(any(), any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_authenticateUserInFaces_fails() {
+        try {
+            String user = "test";
+            String errorMessage = "Test error message";
+            IRecognizable face = mock(IRecognizable.class);
+            IUserManagement userManagement = mock(IUserManagement.class);
+            when(userManagement.getFacesOfUser(anyString())).thenReturn(new IRecognizable[]{face});
+            IFaceRecognition faceRecognition = mock(IFaceRecognition.class);
+            when(faceRecognition.compareSubjectFacesToFaces(any(), any())).thenThrow(new Exception(errorMessage));
+            VerID verID = mock(VerID.class);
+            when(verID.getUserManagement()).thenReturn(userManagement);
+            when(verID.getFaceRecognition()).thenReturn(faceRecognition);
+            RxVerID rxVerID = mock(RxVerID.class);
+            when(rxVerID.authenticateUserInFaces(anyString(), any())).thenCallRealMethod();
+            when(rxVerID.authenticateUserInFaces(any(), anyString(), any())).thenCallRealMethod();
+            when(rxVerID.getVerID()).thenReturn(Single.just(verID));
+
+            TestObserver<Boolean> testObserver = rxVerID.authenticateUserInFaces(user, new RecognizableFace[]{mock(RecognizableFace.class)}).test();
+
+            testObserver
+                    .assertSubscribed()
+                    .assertErrorMessage(errorMessage)
+                    .assertTerminated();
+
+            verify(userManagement).getFacesOfUser(eq(user));
+            verify(faceRecognition).compareSubjectFacesToFaces(any(), any());
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_getSessionResultFromIntent_succeeds() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getSessionResultFromIntent(any())).thenCallRealMethod();
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getError()).thenReturn(null);
+        Intent intent = mock(Intent.class);
+        when(intent.getParcelableExtra(eq("com.appliedrec.verid.ui.EXTRA_RESULT"))).thenReturn(result);
+
+        TestObserver<VerIDSessionResult> testObserver = rxVerID.getSessionResultFromIntent(intent).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertNoErrors()
+                .assertValue(result)
+                .assertComplete();
+    }
+
+    @Test
+    public void test_getSessionResultFromNullIntent_fails() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getSessionResultFromIntent(any())).thenCallRealMethod();
+
+        TestObserver<VerIDSessionResult> testObserver = rxVerID.getSessionResultFromIntent(null).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertError(NullPointerException.class)
+                .assertTerminated();
+    }
+
+    @Test
+    public void test_getSessionResultFromIntentWithoutResult_fails() {
+        String errorMessage = "Failed to parse Ver-ID session result from intent";
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getSessionResultFromIntent(any())).thenCallRealMethod();
+        Intent intent = mock(Intent.class);
+        when(intent.getParcelableExtra(eq("com.appliedrec.verid.ui.EXTRA_RESULT"))).thenReturn(null);
+
+        TestObserver<VerIDSessionResult> testObserver = rxVerID.getSessionResultFromIntent(intent).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertErrorMessage(errorMessage)
+                .assertTerminated();
+    }
+
+    @Test
+    public void test_getFailedSessionResultFromIntent_fails() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getSessionResultFromIntent(any())).thenCallRealMethod();
+        Exception exception = mock(Exception.class);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getError()).thenReturn(exception);
+        Intent intent = mock(Intent.class);
+        when(intent.getParcelableExtra(eq("com.appliedrec.verid.ui.EXTRA_RESULT"))).thenReturn(result);
+
+        TestObserver<VerIDSessionResult> testObserver = rxVerID.getSessionResultFromIntent(intent).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertError(exception)
+                .assertTerminated();
+    }
+
+    @Test
+    public void test_getImageUriFaceAndBearingFromSessionResult_returnsImageUriFaceAndBearing() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getImageUriFaceAndBearingFromSessionResult(any())).thenCallRealMethod();
+        Uri uri = mock(Uri.class);
+        Face face = mock(Face.class);
+        DetectedFace detectedFace = mock(DetectedFace.class);
+        when(detectedFace.getBearing()).thenReturn(Bearing.STRAIGHT);
+        when(detectedFace.getImageUri()).thenReturn(uri);
+        when(detectedFace.getFace()).thenReturn(face);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getAttachments()).thenReturn(new DetectedFace[]{detectedFace});
+        when(result.getError()).thenReturn(null);
+        Triplet<Uri, Face, Bearing> value = new Triplet<>(uri, face, Bearing.STRAIGHT);
+
+        TestObserver<Triplet<Uri, Face, Bearing>> testObserver = rxVerID.getImageUriFaceAndBearingFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertNoErrors()
+                .assertValue(value)
+                .assertComplete();
+    }
+
+    @Test
+    public void test_getImageUriFaceAndBearingFromFailedSessionResult_fails() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getImageUriFaceAndBearingFromSessionResult(any())).thenCallRealMethod();
+        Exception exception = mock(Exception.class);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getError()).thenReturn(exception);
+
+        TestObserver<Triplet<Uri, Face, Bearing>> testObserver = rxVerID.getImageUriFaceAndBearingFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertError(exception)
+                .assertTerminated();
+    }
+
+    @Test
+    public void test_getFacesAndImageUrisFromSessionResult_returnsFacesAndImageUris() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getFacesAndImageUrisFromSessionResult(any())).thenCallRealMethod();
+        when(rxVerID.getFacesAndImageUrisFromSessionResult(any(), any())).thenCallRealMethod();
+        Uri uri = mock(Uri.class);
+        Face face = mock(Face.class);
+        DetectedFace detectedFace = mock(DetectedFace.class);
+        when(detectedFace.getImageUri()).thenReturn(uri);
+        when(detectedFace.getFace()).thenReturn(face);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getAttachments()).thenReturn(new DetectedFace[]{detectedFace});
+        when(result.getError()).thenReturn(null);
+
+        TestObserver<DetectedFace> testObserver = rxVerID.getFacesAndImageUrisFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertNoErrors()
+                .assertValue(detectedFace)
+                .assertComplete();
+    }
+
+    @Test
+    public void test_getFacesAndImageUrisFromFailedSessionResult_fails() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getFacesAndImageUrisFromSessionResult(any())).thenCallRealMethod();
+        when(rxVerID.getFacesAndImageUrisFromSessionResult(any(), any())).thenCallRealMethod();
+        Exception exception = mock(Exception.class);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getError()).thenReturn(exception);
+
+        TestObserver<DetectedFace> testObserver = rxVerID.getFacesAndImageUrisFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertError(exception)
+                .assertTerminated();
+    }
+
+    @Test
+    public void test_getRecognizableFacesFromSessionResult_returnsFace() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getRecognizableFacesFromSessionResult(any())).thenCallRealMethod();
+        when(rxVerID.getRecognizableFacesFromSessionResult(any(), any())).thenCallRealMethod();
+        Uri uri = mock(Uri.class);
+        RecognizableFace face = mock(RecognizableFace.class);
+        DetectedFace detectedFace = mock(DetectedFace.class);
+        when(detectedFace.getFace()).thenReturn(face);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getAttachments()).thenReturn(new DetectedFace[]{detectedFace});
+        when(result.getError()).thenReturn(null);
+
+        TestObserver<RecognizableFace> testObserver = rxVerID.getRecognizableFacesFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertNoErrors()
+                .assertValue(face)
+                .assertComplete();
+    }
+
+    @Test
+    public void test_getRecognizableFacesFromFailedSessionResult_fails() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getRecognizableFacesFromSessionResult(any())).thenCallRealMethod();
+        when(rxVerID.getRecognizableFacesFromSessionResult(any(), any())).thenCallRealMethod();
+        Exception exception = mock(Exception.class);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getError()).thenReturn(exception);
+
+        TestObserver<RecognizableFace> testObserver = rxVerID.getRecognizableFacesFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertError(exception)
+                .assertTerminated();
+    }
+
+    @Test
+    public void test_getImageUrisFromSessionResult_returnsUri() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getImageUrisFromSessionResult(any())).thenCallRealMethod();
+        when(rxVerID.getImageUrisFromSessionResult(any(), any())).thenCallRealMethod();
+        Uri uri = mock(Uri.class);
+        RecognizableFace face = mock(RecognizableFace.class);
+        DetectedFace detectedFace = mock(DetectedFace.class);
+        when(detectedFace.getImageUri()).thenReturn(uri);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getAttachments()).thenReturn(new DetectedFace[]{detectedFace});
+        when(result.getError()).thenReturn(null);
+
+        TestObserver<Uri> testObserver = rxVerID.getImageUrisFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertNoErrors()
+                .assertValue(uri)
+                .assertComplete();
+    }
+
+    @Test
+    public void test_getImageUrisFromFailedSessionResult_fails() {
+        RxVerID rxVerID = mock(RxVerID.class);
+        when(rxVerID.getImageUrisFromSessionResult(any())).thenCallRealMethod();
+        when(rxVerID.getImageUrisFromSessionResult(any(), any())).thenCallRealMethod();
+        Exception exception = mock(Exception.class);
+        VerIDSessionResult result = mock(VerIDSessionResult.class);
+        when(result.getError()).thenReturn(exception);
+
+        TestObserver<Uri> testObserver = rxVerID.getImageUrisFromSessionResult(result).test();
+
+        testObserver
+                .assertSubscribed()
+                .assertError(exception)
+                .assertTerminated();
     }
 }

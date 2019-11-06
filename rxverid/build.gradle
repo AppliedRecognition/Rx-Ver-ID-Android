@@ -5,8 +5,8 @@ android {
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        versionCode rootProject.generateVersionCode()
+        versionName rootProject.generateVersionName()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -38,5 +38,6 @@ dependencies {
     testImplementation "org.mockito:mockito-core:2.28.2"
 
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'org.mockito:mockito-android:2.28.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }

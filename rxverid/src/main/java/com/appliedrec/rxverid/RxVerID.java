@@ -1,6 +1,7 @@
 package com.appliedrec.rxverid;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -12,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.exifinterface.media.ExifInterface;
 
+import com.appliedrec.verid.core.Bearing;
+import com.appliedrec.verid.core.DetectedFace;
 import com.appliedrec.verid.core.Face;
 import com.appliedrec.verid.core.IFaceDetectionFactory;
 import com.appliedrec.verid.core.IFaceRecognition;
@@ -24,8 +27,10 @@ import com.appliedrec.verid.core.UserIdentification;
 import com.appliedrec.verid.core.VerID;
 import com.appliedrec.verid.core.VerIDFactory;
 import com.appliedrec.verid.core.VerIDImage;
+import com.appliedrec.verid.core.VerIDSessionResult;
 
 import org.javatuples.Pair;
+import org.javatuples.Triplet;
 
 import java.io.InputStream;
 import java.lang.annotation.Retention;
@@ -94,7 +99,7 @@ public class RxVerID {
                     return false;
                 }
                 Configuration other = (Configuration)obj;
-                return other.context == context && other.faceDetectionFactory == faceDetectionFactory && other.faceRecognitionFactory == faceRecognitionFactory && other.userManagementFactory == userManagementFactory;
+                return other.getContext() == getContext() && other.getFaceDetectionFactory() == getFaceRecognitionFactory() && other.getFaceRecognitionFactory() == getFaceRecognitionFactory() && other.getUserManagementFactory() == getUserManagementFactory();
             }
         }
 
@@ -773,16 +778,52 @@ public class RxVerID {
      * @since 1.0.0
      */
     public Single<Bitmap> cropImageToFace(@NonNull Bitmap bitmap, @NonNull Face face) {
-        return Single.create(emitter -> {
-            Rect cropRect = new Rect();
-            face.getBounds().round(cropRect);
-            cropRect.right = Math.min(bitmap.getWidth(), cropRect.right);
-            cropRect.bottom = Math.min(bitmap.getHeight(), cropRect.bottom);
-            cropRect.top = Math.max(0, cropRect.top);
-            cropRect.left = Math.max(0, cropRect.left);
-            Bitmap cropped = Bitmap.createBitmap(bitmap, cropRect.left, cropRect.top, cropRect.width(), cropRect.height());
-            emitter.onSuccess(cropped);
-        });
+        return cropImageToFace(bitmap, ExifInterface.ORIENTATION_NORMAL, face);
+    }
+
+    /**
+     * Crop bitmap to the bounds of a face
+     * @param bitmap Bitmap to crop
+     * @param exifOrientation EXIF orientation of the image
+     * @param face Face to whose bounds the image should be cropped
+     * @return Single whose return value is a bitmap of the image cropped to the bounds of the face
+     * @since 1.4.0
+     */
+    public Single<Bitmap> cropImageToFace(@NonNull Bitmap bitmap, @ExifOrientation int exifOrientation, @NonNull Face face) {
+        return correctBitmapOrientation(bitmap, exifOrientation)
+                .map(rightedBitmap -> {
+                    Rect cropRect = new Rect();
+                    face.getBounds().round(cropRect);
+                    cropRect.right = Math.min(rightedBitmap.getWidth(), cropRect.right);
+                    cropRect.bottom = Math.min(rightedBitmap.getHeight(), cropRect.bottom);
+                    cropRect.top = Math.max(0, cropRect.top);
+                    cropRect.left = Math.max(0, cropRect.left);
+                    Bitmap cropped = Bitmap.createBitmap(rightedBitmap, cropRect.left, cropRect.top, cropRect.width(), cropRect.height());
+                    return cropped;
+                });
+    }
+
+    /**
+     * Correct orientation of a bitmap using the value of EXIF orientation tag
+     * @param bitmap Bitmap to correct
+     * @param exifOrientation EXIF orientation tag value
+     * @return Single whose return value is a bitmap oriented upright
+     * @since 1.5.0
+     */
+    public Single<Bitmap> correctBitmapOrientation(@NonNull Bitmap bitmap, @ExifOrientation int exifOrientation) {
+        return getTransformMatrixForExifOrientation(exifOrientation)
+                .flatMap(matrix -> emitter -> {
+                    if (!matrix.isIdentity()) {
+                        Bitmap rightedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+                        if (rightedBitmap == null) {
+                            emitter.onError(new Exception("Unable to correct the bitmap orientation"));
+                            return;
+                        }
+                        emitter.onSuccess(rightedBitmap);
+                    } else {
+                        emitter.onSuccess(bitmap);
+                    }
+                });
     }
 
     /**
@@ -870,6 +911,37 @@ public class RxVerID {
         return Completable.create(emitter -> {
             try {
                 verID.getUserManagement().assignFacesToUser(faces, user);
+                emitter.onComplete();
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        });
+    }
+
+    /**
+     * Assign face to user
+     * @param face Face to assign to the user
+     * @param user User to whom the face should be assigned
+     * @return Completable
+     * @since 1.3.0
+     */
+    public Completable assignFaceToUser(IRecognizable face, String user) {
+        return getVerID()
+                .flatMapCompletable(verID -> assignFaceToUser(verID, face, user));
+    }
+
+    /**
+     * Assign face to user
+     * @param verID Ver-ID instance
+     * @param face Face to assign to the user
+     * @param user User to whom the face should be assigned
+     * @return Completable
+     * @since 1.3.0
+     */
+    public Completable assignFaceToUser(VerID verID, IRecognizable face, String user) {
+        return Completable.create(emitter -> {
+            try {
+                verID.getUserManagement().assignFacesToUser(new IRecognizable[]{face}, user);
                 emitter.onComplete();
             } catch (Exception e) {
                 emitter.onError(e);
@@ -1003,6 +1075,152 @@ public class RxVerID {
                 emitter.onError(e);
             }
         });
+    }
+
+    // endregion
+
+    // region Session result parsing
+
+    /**
+     * Get session result from intent
+     * @param intent Intent from which to extract session result
+     * @return Single whose value is a successful session result
+     * @since 1.2.0
+     */
+    public Single<VerIDSessionResult> getSessionResultFromIntent(Intent intent) {
+        return Single.create(emitter -> {
+            if (intent == null) {
+                emitter.onError(new NullPointerException());
+                return;
+            }
+            VerIDSessionResult result = intent.getParcelableExtra("com.appliedrec.verid.ui.EXTRA_RESULT");
+            if (result == null) {
+                emitter.onError(new Exception("Failed to parse Ver-ID session result from intent"));
+                return;
+            }
+            if (result.getError() != null) {
+                emitter.onError(result.getError());
+                return;
+            }
+            emitter.onSuccess(result);
+        });
+    }
+
+    /**
+     * Get image URI, face and bearing from session result
+     * @param result Session result from which to extract the URI, face and bearing
+     * @return Observable whose values are {@link Triplet triplets} of {@link Uri}, {@link Face} and {@link Bearing}
+     * @since 1.2.0
+     */
+    public Observable<Triplet<Uri, Face, Bearing>> getImageUriFaceAndBearingFromSessionResult(VerIDSessionResult result) {
+        return Observable.create(emitter -> {
+            if (result.getError() != null) {
+                emitter.onError(result.getError());
+                return;
+            }
+            for (DetectedFace detectedFace : result.getAttachments()) {
+                if (detectedFace.getFace() != null && detectedFace.getImageUri() != null) {
+                    emitter.onNext(new Triplet<>(detectedFace.getImageUri(), detectedFace.getFace(), detectedFace.getBearing()));
+                }
+            }
+            emitter.onComplete();
+        });
+    }
+
+    /**
+     * Get faces and image URIs from a session result
+     * @param result Session result
+     * @param bearing Limit the results to a bearing or {@literal null} to include all bearings
+     * @return Observable whose values are {@link DetectedFace} objects
+     * @since 1.3.0
+     */
+    public Observable<DetectedFace> getFacesAndImageUrisFromSessionResult(VerIDSessionResult result, @Nullable Bearing bearing) {
+        return Observable.create(emitter -> {
+            if (result.getError() != null) {
+                emitter.onError(result.getError());
+                return;
+            }
+            for (DetectedFace detectedFace : result.getAttachments()) {
+                if (detectedFace.getFace() != null && detectedFace.getImageUri() != null && (bearing == null || bearing == detectedFace.getBearing())) {
+                    emitter.onNext(detectedFace);
+                }
+            }
+            emitter.onComplete();
+        });
+    }
+
+    /**
+     * Get faces and image URIs from a session result
+     * @param result Session result
+     * @return Observable whose values are {@link DetectedFace} objects
+     * @since 1.3.0
+     */
+    public Observable<DetectedFace> getFacesAndImageUrisFromSessionResult(VerIDSessionResult result) {
+        return getFacesAndImageUrisFromSessionResult(result, null);
+    }
+
+    /**
+     * Get faces that can be used for face recognition from a session result
+     * @param result Session result
+     * @param bearing Limit the result to faces with the given bearing
+     * @return Observable whose values are faces that can be used for face recognition
+     * @since 1.3.0
+     */
+    public Observable<RecognizableFace> getRecognizableFacesFromSessionResult(VerIDSessionResult result, @Nullable Bearing bearing) {
+        return Observable.create(emitter -> {
+            if (result.getError() != null) {
+                emitter.onError(result.getError());
+                return;
+            }
+            for (DetectedFace detectedFace : result.getAttachments()) {
+                if (detectedFace.getFace() != null && detectedFace.getFace() instanceof RecognizableFace && (bearing == null || detectedFace.getBearing() == bearing)) {
+                    emitter.onNext((RecognizableFace) detectedFace.getFace());
+                }
+            }
+            emitter.onComplete();
+        });
+    }
+
+    /**
+     * Get faces that can be used for face recognition from a session result
+     * @param result Session result
+     * @return Observable whose values are faces that can be used for face recognition
+     * @since 1.3.0
+     */
+    public Observable<RecognizableFace> getRecognizableFacesFromSessionResult(VerIDSessionResult result) {
+        return getRecognizableFacesFromSessionResult(result, null);
+    }
+
+    /**
+     * Get image URIs from a session result
+     * @param result Session result
+     * @param bearing Limit the images to faces with the given bearing
+     * @return Observable whose values are URIs of the images captured during a successful Ver-ID session
+     * @since 1.3.0
+     */
+    public Observable<Uri> getImageUrisFromSessionResult(VerIDSessionResult result, @Nullable Bearing bearing) {
+        return Observable.create(emitter -> {
+            if (result.getError() != null) {
+                emitter.onError(result.getError());
+                return;
+            }
+            for (DetectedFace detectedFace : result.getAttachments()) {
+                if (detectedFace.getImageUri() != null && (bearing == null || detectedFace.getBearing() == bearing)) {
+                    emitter.onNext(detectedFace.getImageUri());
+                }
+            }
+            emitter.onComplete();
+        });
+    }
+
+    /**
+     * Get image URIs from a session result
+     * @param result Session result
+     * @return Observable whose values are URIs of the images captured during a successful Ver-ID session
+     * @since 1.3.0
+     */
+    public Observable<Uri> getImageUrisFromSessionResult(VerIDSessionResult result) {
+        return getImageUrisFromSessionResult(result, null);
     }
 
     // endregion

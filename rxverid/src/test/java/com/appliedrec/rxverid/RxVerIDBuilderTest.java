@@ -21,6 +21,13 @@ import static org.mockito.Mockito.when;
 public class RxVerIDBuilderTest {
 
     @Test
+    public void test_constructor_succeeds() {
+        Context context = mock(Context.class);
+        RxVerID.Builder builder = new RxVerID.Builder(context);
+        assertEquals(context, builder.getConfiguration().getContext());
+    }
+
+    @Test
     public void test_getConfiguration() {
         RxVerID.Builder builder = mock(RxVerID.Builder.class);
         when(builder.getConfiguration()).thenCallRealMethod();

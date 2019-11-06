@@ -7,7 +7,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/openjdk:8-jdk
+      - image: circleci/android:api-28
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -23,6 +23,18 @@ jobs:
 
     steps:
       - checkout
+      - run:
+          name: Update apt-get
+          command: sudo apt-get update
+      - run:
+          name: Install libncurses5
+          command: sudo apt-get install libncurses5
+      - run: 
+          name: Make environment setup script executable
+          command: chmod +x ~/repo/environmentSetup.sh
+      - run:
+          name: Run environment setup
+          command: ~/repo/environmentSetup.sh
 
       # Download and cache dependencies
       - restore_cache:

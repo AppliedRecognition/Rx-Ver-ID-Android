@@ -21,7 +21,7 @@ Reactive version of Ver-ID Core for Android
 
     ~~~groovy
     dependencies {
-      implementation 'com.appliedrec.verid:rx:[1.5.0,2.0.0['
+      implementation 'com.appliedrec.verid:rx:[1.6.0,2.0.0['
     }
     ~~~
 1. Add the API secret in your app's manifest XML:
@@ -96,9 +96,7 @@ String userId = "someUserId";
 // Create an instance of RxVerID
 RxVerID rxVerID = new RxVerID.Builder(context).build();
 
-rxVerID.detectRecognizableFacesInImage(imageUri, 1) // Detect up to 1 face in the image URI
-    .firstOrError() // Take the first detected face or throw and error if no face detected
-    .flatMap(face -> rxVerID.authenticateUserInFaces(userId, new RecognizableFace[]{face})) // Authenticate user in the face
+rxVerID.authenticateUserInImage(userId, imageUri) // Authenticate user in the image
     .subscribeOn(Schedulers.io()) // Subscribe on a background thread
     .observeOn(AndroidSchedulers.mainThread()) // Observe on main thread
     .subscribe(

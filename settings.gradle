@@ -1,2 +1,2 @@
-include ':rxverid'
+include ':rxverid', ':doclet'
 rootProject.name='Rx Ver-ID'

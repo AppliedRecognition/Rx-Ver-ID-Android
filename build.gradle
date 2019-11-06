@@ -24,7 +24,7 @@ ext {
     annotationVersion = '[1.1,2.0['
     javatuplesVersion = '[1.2,2.0['
     versionMajor = 1
-    versionMinor = 5
+    versionMinor = 6
     versionPatch = 0
     versionClassifier = null
     versionClassifierVersion = ""

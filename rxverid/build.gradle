@@ -24,6 +24,28 @@ android {
     }
 }
 
+task javadoc(type: Javadoc, dependsOn: ':doclet:compileJava') {
+    source = android.sourceSets.main.java.srcDirs
+
+    ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+
+    configurations.implementation.setCanBeResolved(true)
+
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += files(ext.androidJar)
+
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PUBLIC
+    exclude '**/BuildConfig.java'
+    exclude '**/R.java'
+    exclude '**/Jama'
+    options.doclet("AppliedRecDoclet")
+    options.docletpath(new File("${project.getRootDir()}/doclet/build/classes/java/main"))
+    options.addStringOption("htmlsrc", "${project.getRootDir()}/doclet/src/docs")
+    options.addStringOption("destpath", "${project.getRootDir()}/docs")
+    print("Generate documentation in ${project.getRootDir()}/docs")
+    failOnError = true
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.appliedrec.verid:core:$rootProject.veridVersion"

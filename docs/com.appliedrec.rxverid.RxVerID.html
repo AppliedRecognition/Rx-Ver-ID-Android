@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Ver-ID API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+<aside><h2>Classes</h2><ul><li><a href="com.appliedrec.rxverid.RxVerID.Builder.html">RxVerID.Builder</a></li><li><a href="com.appliedrec.rxverid.RxVerID.html">RxVerID</a></li></ul></aside>
+</body>
+</html>
+<h1>RxVerID</h1>
+<section>
+<h4>Reactive implementation of common Ver-ID SDK tasks
+
+ <p>Use <a href="com.appliedrec.rxverid.RxVerID.Builder.html">Builder</a> to create an instance.</p></h4>
+</section>
+<h4>Package com.appliedrec.rxverid</h4>
+<code>public class  RxVerID</code>
+<ul class="ancestry"><li>com.appliedrec.rxverid.RxVerID
+<ul class="ancestry"><li>java.lang.Object
+</li></ul>
+</li></ul>
+<section><h2>Methods</h2><dl>
+<dt><h3><a name="getContext()">getContext</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public getContext()</code>
+<p>Context used by this instance</p>
+<h4>Returns</h4>
+<dl>
+<dt><code>android.content.Context</code></dt>
+<dd>Context</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getVerID()">getVerID</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public getVerID()</code>
+<p>Get a Ver-ID instance</p>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is an instance of Ver-ID</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getExifOrientationOfImage(Uri)">getExifOrientationOfImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public getExifOrientationOfImage(Uri)</code>
+<p>Get EXIF orientation of an image at the given URI</p>
+<h4>Parameters</h4>
+<dl>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is an integer value of the EXIF orientation tag</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="convertUriToBitmap(Uri)">convertUriToBitmap</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public convertUriToBitmap(Uri)</code>
+<p>Convert image at the given URI to a bitmap</p>
+<h4>Parameters</h4>
+<dl>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image to convert</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is a bitmap</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="convertUriToVerIDImage(Uri)">convertUriToVerIDImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public convertUriToVerIDImage(Uri)</code>
+<p>Convert image at the given URI to Ver-ID image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image to convert</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is a <a href="">Ver-ID image</a></dd>
+</dl>
+
+</dd>
+<dt><h3><a name="convertBitmapToVerIDImage(Bitmap, int)">convertBitmapToVerIDImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public convertBitmapToVerIDImage(Bitmap, int)</code>
+<p>Convert bitmap to Ver-ID image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap to convert</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is a <a href="">Ver-ID image</a></dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(Uri, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(Uri, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(VerIDImage, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(VerIDImage, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(Bitmap, int, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(Bitmap, int, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(Bitmap, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(Bitmap, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(VerID, Uri, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(VerID, Uri, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(VerID, VerIDImage, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(VerID, VerIDImage, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(VerID, Bitmap, int, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(VerID, Bitmap, int, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectRecognizableFacesInImage(VerID, Bitmap, int)">detectRecognizableFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectRecognizableFacesInImage(VerID, Bitmap, int)</code>
+<p>Detect faces that can be used for face recognition in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(Uri, int)">detectFacesInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public detectFacesInImage(Uri, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(VerIDImage, int)">detectFacesInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public detectFacesInImage(VerIDImage, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(Bitmap, int)">detectFacesInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public detectFacesInImage(Bitmap, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(Bitmap, int, int)">detectFacesInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public detectFacesInImage(Bitmap, int, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(VerID, Uri, int)">detectFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectFacesInImage(VerID, Uri, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(VerID, VerIDImage, int)">detectFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectFacesInImage(VerID, VerIDImage, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(VerID, Bitmap, int)">detectFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectFacesInImage(VerID, Bitmap, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="detectFacesInImage(VerID, Bitmap, int, int)">detectFacesInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public detectFacesInImage(VerID, Bitmap, int, int)</code>
+<p>Detect faces in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to detect faces</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+<dt>limit <code>int</code></dt>
+<dd>Maximum number of faces to find</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces detected in the image</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getUserIdentification()">getUserIdentification</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public getUserIdentification()</code>
+<p>Get user identification</p>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is an instance of UserIdentification</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(Uri)">identifyUsersInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(Uri)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image in which to identify the users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(Bitmap)">identifyUsersInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(Bitmap)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to identify the users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(Bitmap, int)">identifyUsersInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(Bitmap, int)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to identify the users</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(VerIDImage)">identifyUsersInImage</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(VerIDImage)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to identify the users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getUserIdentification(VerID)">getUserIdentification</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public getUserIdentification(VerID)</code>
+<p>Get user identification</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is an instance of UserIdentification</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(VerID, Uri)">identifyUsersInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(VerID, Uri)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image in which to identify the users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(VerID, Bitmap)">identifyUsersInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(VerID, Bitmap)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to identify the users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(VerID, Bitmap, int)">identifyUsersInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(VerID, Bitmap, int)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap in which to identify the users</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInImage(VerID, VerIDImage)">identifyUsersInImage</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public identifyUsersInImage(VerID, VerIDImage)</code>
+<p>Identify users in an image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to identify the users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInFace(RecognizableFace)">identifyUsersInFace</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public identifyUsersInFace(RecognizableFace)</code>
+<p>Identify users in a face</p>
+<h4>Parameters</h4>
+<dl>
+<dt>face <code>RecognizableFace</code></dt>
+<dd>Face in which to identify users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="identifyUsersInFace(VerID, RecognizableFace)">identifyUsersInFace</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public identifyUsersInFace(VerID, RecognizableFace)</code>
+<p>Identify users in a face</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>face <code>RecognizableFace</code></dt>
+<dd>Face in which to identify users</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are pairs of of user ID and score sorted by the best match</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="convertFaceToRecognizableFace(VerIDImage, Face)">convertFaceToRecognizableFace</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public convertFaceToRecognizableFace(VerIDImage, Face)</code>
+<p>Convert a face detected in an image into a face that can be used for face recognition</p>
+<h4>Parameters</h4>
+<dl>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which the face was detected</dd>
+<dt>face <code>Face</code></dt>
+<dd>Face to convert to recognizable face</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="convertFaceToRecognizableFace(VerID, VerIDImage, Face)">convertFaceToRecognizableFace</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public convertFaceToRecognizableFace(VerID, VerIDImage, Face)</code>
+<p>Convert a face detected in an image into a face that can be used for face recognition</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which the face was detected</dd>
+<dt>face <code>Face</code></dt>
+<dd>Face to convert to recognizable face</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are recognizable faces</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="cropImageToFace(Bitmap, Face)">cropImageToFace</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public cropImageToFace(Bitmap, Face)</code>
+<p>Crop bitmap to the bounds of a face</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap to crop</dd>
+<dt>face <code>Face</code></dt>
+<dd>Face to whose bounds the image should be cropped</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value is a bitmap of the image cropped to the bounds of the face</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="cropImageToFace(Bitmap, int, Face)">cropImageToFace</a></h3><p>Introduced in version 1.4.0</p></dt>
+<dd>
+<code>public cropImageToFace(Bitmap, int, Face)</code>
+<p>Crop bitmap to the bounds of a face</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap to crop</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the image</dd>
+<dt>face <code>Face</code></dt>
+<dd>Face to whose bounds the image should be cropped</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value is a bitmap of the image cropped to the bounds of the face</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="correctBitmapOrientation(Bitmap, int)">correctBitmapOrientation</a></h3><p>Introduced in version 1.5.0</p></dt>
+<dd>
+<code>public correctBitmapOrientation(Bitmap, int)</code>
+<p>Correct orientation of a bitmap using the value of EXIF orientation tag</p>
+<h4>Parameters</h4>
+<dl>
+<dt>bitmap <code>android.graphics.Bitmap</code></dt>
+<dd>Bitmap to correct</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation tag value</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value is a bitmap oriented upright</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="cropImageToFace(Uri, Face)">cropImageToFace</a></h3><p>Introduced in version 1.0.0</p></dt>
+<dd>
+<code>public cropImageToFace(Uri, Face)</code>
+<p>Crop image to the bounds of a face</p>
+<h4>Parameters</h4>
+<dl>
+<dt>imageUri <code>android.net.Uri</code></dt>
+<dd>URI of the image to crop</dd>
+<dt>face <code>Face</code></dt>
+<dd>Face to whose bounds the image should be cropped</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value is a bitmap of the image cropped to the bounds of the face</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="compareFaceToFaces(IRecognizable, RecognizableFace[])">compareFaceToFaces</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public compareFaceToFaces(IRecognizable, RecognizableFace[])</code>
+<p>Compare face to faces</p>
+<h4>Parameters</h4>
+<dl>
+<dt>face <code>IRecognizable</code></dt>
+<dd>Face to compare to other faces</dd>
+<dt>faces <code>RecognizableFace[]</code></dt>
+<dd>Faces to compare to the face</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value is a face comparison score. If the score exceeds <a href="">authentication threshold</a> the faces can be considered authenticated against the face.</dd>
+</dl>
+<h4>See also</h4><ul class="seeAlso"><li><a href=""></a></li></ul>
+</dd>
+<dt><h3><a name="compareFaceToFaces(VerID, IRecognizable, RecognizableFace[])">compareFaceToFaces</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public compareFaceToFaces(VerID, IRecognizable, RecognizableFace[])</code>
+<p>Compare face to faces</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>face <code>IRecognizable</code></dt>
+<dd>Face to compare to other faces</dd>
+<dt>faces <code>RecognizableFace[]</code></dt>
+<dd>Faces to compare to the face</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value is a face comparison score. If the score exceeds <a href="">authentication threshold</a> the faces can be considered authenticated against the face.</dd>
+</dl>
+<h4>See also</h4><ul class="seeAlso"><li><a href=""></a></li></ul>
+</dd>
+<dt><h3><a name="assignFacesToUser(IRecognizable[], String)">assignFacesToUser</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public assignFacesToUser(IRecognizable[], String)</code>
+<p>Assign faces to user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>faces <code>IRecognizable[]</code></dt>
+<dd>Faces to assign to the user</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to whom the faces should be assigned</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code>Completable</code></dt>
+<dd>Completable</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="assignFacesToUser(VerID, IRecognizable[], String)">assignFacesToUser</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public assignFacesToUser(VerID, IRecognizable[], String)</code>
+<p>Assign faces to user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>faces <code>IRecognizable[]</code></dt>
+<dd>Faces to assign to the user</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to whom the faces should be assigned</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code>Completable</code></dt>
+<dd>Completable</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="assignFaceToUser(IRecognizable, String)">assignFaceToUser</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public assignFaceToUser(IRecognizable, String)</code>
+<p>Assign face to user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>face <code>IRecognizable</code></dt>
+<dd>Face to assign to the user</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to whom the face should be assigned</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code>Completable</code></dt>
+<dd>Completable</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="assignFaceToUser(VerID, IRecognizable, String)">assignFaceToUser</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public assignFaceToUser(VerID, IRecognizable, String)</code>
+<p>Assign face to user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>face <code>IRecognizable</code></dt>
+<dd>Face to assign to the user</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to whom the face should be assigned</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code>Completable</code></dt>
+<dd>Completable</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="deleteUser(String)">deleteUser</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public deleteUser(String)</code>
+<p>Delete a user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>Identifier of the user who is to be deleted</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code>Completable</code></dt>
+<dd>Completable</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="deleteUser(VerID, String)">deleteUser</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public deleteUser(VerID, String)</code>
+<p>Delete a user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>Identifier of the user who is to be deleted</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code>Completable</code></dt>
+<dd>Completable</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getUsers()">getUsers</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public getUsers()</code>
+<p>Get users</p>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose return values are identifiers of users who have at least one face registered</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getUsers(VerID)">getUsers</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public getUsers(VerID)</code>
+<p>Get users</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose return values are identifiers of users who have at least one face registered</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getFacesOfUser(String)">getFacesOfUser</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public getFacesOfUser(String)</code>
+<p>Get faces of user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>Identifier for the user whose faces to get</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose return value is a face of the user</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getFacesOfUser(VerID, String)">getFacesOfUser</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public getFacesOfUser(VerID, String)</code>
+<p>Get faces of user</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>Identifier for the user whose faces to get</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose return value is a face of the user</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInFaces(String, RecognizableFace[])">authenticateUserInFaces</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public authenticateUserInFaces(String, RecognizableFace[])</code>
+<p>Authenticate user in faces</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>Identifier for the user to be authenticated</dd>
+<dt>faces <code>RecognizableFace[]</code></dt>
+<dd>Faces to authenticate as the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInFaces(VerID, String, RecognizableFace[])">authenticateUserInFaces</a></h3><p>Introduced in version 1.1.0</p></dt>
+<dd>
+<code>public authenticateUserInFaces(VerID, String, RecognizableFace[])</code>
+<p>Authenticate user in faces</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>Identifier for the user to be authenticated</dd>
+<dt>faces <code>RecognizableFace[]</code></dt>
+<dd>Faces to authenticate as the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInFace(String, RecognizableFace)">authenticateUserInFace</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInFace(String, RecognizableFace)</code>
+<p>Authenticate user in face</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>face <code>RecognizableFace</code></dt>
+<dd>Face in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInFace(VerID, String, RecognizableFace)">authenticateUserInFace</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInFace(VerID, String, RecognizableFace)</code>
+<p>Authenticate user in face</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>face <code>RecognizableFace</code></dt>
+<dd>Face in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(String, Uri)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(String, Uri)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>android.net.Uri</code></dt>
+<dd>Image in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(VerID, String, Uri)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(VerID, String, Uri)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>android.net.Uri</code></dt>
+<dd>Image in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(String, VerIDImage)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(String, VerIDImage)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(VerID, String, VerIDImage)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(VerID, String, VerIDImage)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>VerIDImage</code></dt>
+<dd>Image in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(String, Bitmap)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(String, Bitmap)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>android.graphics.Bitmap</code></dt>
+<dd>Image in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(VerID, String, Bitmap)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(VerID, String, Bitmap)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>android.graphics.Bitmap</code></dt>
+<dd>Image in which to authenticate the user</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(String, Bitmap, int)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(String, Bitmap, int)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>android.graphics.Bitmap</code></dt>
+<dd>Image in which to authenticate the user</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="authenticateUserInImage(VerID, String, Bitmap, int)">authenticateUserInImage</a></h3><p>Introduced in version 1.6.0</p></dt>
+<dd>
+<code>public authenticateUserInImage(VerID, String, Bitmap, int)</code>
+<p>Authenticate user in image</p>
+<h4>Parameters</h4>
+<dl>
+<dt>verID <code>VerID</code></dt>
+<dd>Ver-ID instance</dd>
+<dt>user <code>java.lang.String</code></dt>
+<dd>User to authenticate</dd>
+<dt>image <code>android.graphics.Bitmap</code></dt>
+<dd>Image in which to authenticate the user</dd>
+<dt>exifOrientation <code>int</code></dt>
+<dd>EXIF orientation of the bitmap</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose return value indicates whether the user was authenticated true or not false</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getSessionResultFromIntent(Intent)">getSessionResultFromIntent</a></h3><p>Introduced in version 1.2.0</p></dt>
+<dd>
+<code>public getSessionResultFromIntent(Intent)</code>
+<p>Get session result from intent</p>
+<h4>Parameters</h4>
+<dl>
+<dt>intent <code>android.content.Intent</code></dt>
+<dd>Intent from which to extract session result</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Single whose value is a successful session result</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getImageUriFaceAndBearingFromSessionResult(VerIDSessionResult)">getImageUriFaceAndBearingFromSessionResult</a></h3><p>Introduced in version 1.2.0</p></dt>
+<dd>
+<code>public getImageUriFaceAndBearingFromSessionResult(VerIDSessionResult)</code>
+<p>Get image URI, face and bearing from session result</p>
+<h4>Parameters</h4>
+<dl>
+<dt>result <code>VerIDSessionResult</code></dt>
+<dd>Session result from which to extract the URI, face and bearing</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are <a href="">triplets</a> of <a href="android.net.Uri.html">android.net.Uri.html</a>, <a href=""></a> and <a href=""></a></dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getFacesAndImageUrisFromSessionResult(VerIDSessionResult, Bearing)">getFacesAndImageUrisFromSessionResult</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public getFacesAndImageUrisFromSessionResult(VerIDSessionResult, Bearing)</code>
+<p>Get faces and image URIs from a session result</p>
+<h4>Parameters</h4>
+<dl>
+<dt>result <code>VerIDSessionResult</code></dt>
+<dd>Session result</dd>
+<dt>bearing <code>Bearing</code></dt>
+<dd>Limit the results to a bearing or {@literal null} to include all bearings</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are <a href=""></a> objects</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getFacesAndImageUrisFromSessionResult(VerIDSessionResult)">getFacesAndImageUrisFromSessionResult</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public getFacesAndImageUrisFromSessionResult(VerIDSessionResult)</code>
+<p>Get faces and image URIs from a session result</p>
+<h4>Parameters</h4>
+<dl>
+<dt>result <code>VerIDSessionResult</code></dt>
+<dd>Session result</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are <a href=""></a> objects</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getRecognizableFacesFromSessionResult(VerIDSessionResult, Bearing)">getRecognizableFacesFromSessionResult</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public getRecognizableFacesFromSessionResult(VerIDSessionResult, Bearing)</code>
+<p>Get faces that can be used for face recognition from a session result</p>
+<h4>Parameters</h4>
+<dl>
+<dt>result <code>VerIDSessionResult</code></dt>
+<dd>Session result</dd>
+<dt>bearing <code>Bearing</code></dt>
+<dd>Limit the result to faces with the given bearing</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces that can be used for face recognition</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getRecognizableFacesFromSessionResult(VerIDSessionResult)">getRecognizableFacesFromSessionResult</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public getRecognizableFacesFromSessionResult(VerIDSessionResult)</code>
+<p>Get faces that can be used for face recognition from a session result</p>
+<h4>Parameters</h4>
+<dl>
+<dt>result <code>VerIDSessionResult</code></dt>
+<dd>Session result</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are faces that can be used for face recognition</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getImageUrisFromSessionResult(VerIDSessionResult, Bearing)">getImageUrisFromSessionResult</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public getImageUrisFromSessionResult(VerIDSessionResult, Bearing)</code>
+<p>Get image URIs from a session result</p>
+<h4>Parameters</h4>
+<dl>
+<dt>result <code>VerIDSessionResult</code></dt>
+<dd>Session result</dd>
+<dt>bearing <code>Bearing</code></dt>
+<dd>Limit the images to faces with the given bearing</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are URIs of the images captured during a successful Ver-ID session</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="getImageUrisFromSessionResult(VerIDSessionResult)">getImageUrisFromSessionResult</a></h3><p>Introduced in version 1.3.0</p></dt>
+<dd>
+<code>public getImageUrisFromSessionResult(VerIDSessionResult)</code>
+<p>Get image URIs from a session result</p>
+<h4>Parameters</h4>
+<dl>
+<dt>result <code>VerIDSessionResult</code></dt>
+<dd>Session result</dd>
+</dl>
+<h4>Returns</h4>
+<dl>
+<dt><code><any></code></dt>
+<dd>Observable whose values are URIs of the images captured during a successful Ver-ID session</dd>
+</dl>
+
+</dd>
+</dl></section>

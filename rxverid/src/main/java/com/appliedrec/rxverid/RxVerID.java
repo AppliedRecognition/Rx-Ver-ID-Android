@@ -47,6 +47,9 @@ import io.reactivex.schedulers.Schedulers;
 
 /**
  * Reactive implementation of common Ver-ID SDK tasks
+ *
+ * <p>Use {@link Builder Builder} to create an instance.</p>
+ *
  * @since 1.0.0
  */
 public class RxVerID {
@@ -55,6 +58,13 @@ public class RxVerID {
 
     /**
      * Builder class for RxVerID
+     *
+     * <p>Building an instance of {@link RxVerID RxVerID}:
+     * <pre>
+     * {@code new RxVerID.Builder(context).build();}
+     * </pre>
+     * </p>
+     *
      * @since 1.0.0
      */
     public static class Builder {
@@ -692,21 +702,43 @@ public class RxVerID {
      * @since 1.1.0
      */
     public Observable<Pair<String,Float>> identifyUsersInImage(VerID verID, VerIDImage image) {
+        return detectRecognizableFacesInImage(verID, image, 1)
+                .flatMap(face -> identifyUsersInFace(verID, face));
+    }
+
+    /**
+     * Identify users in a face
+     * @param face Face in which to identify users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.6.0
+     */
+    public Observable<Pair<String,Float>> identifyUsersInFace(RecognizableFace face) {
+        return getVerID()
+                .flatMapObservable(verID -> identifyUsersInFace(verID, face));
+    }
+
+    /**
+     * Identify users in a face
+     * @param verID Ver-ID instance
+     * @param face Face in which to identify users
+     * @return Observable whose values are pairs of of user ID and score sorted by the best match
+     * @since 1.6.0
+     */
+    public Observable<Pair<String,Float>> identifyUsersInFace(VerID verID, RecognizableFace face) {
         Observable<Pair<String,Float>> observable = getUserIdentification(verID)
-                .flatMapObservable(userIdentification -> detectRecognizableFacesInImage(verID, image, 1)
-                        .flatMap(face -> observer -> {
-                            try {
-                                Map<String,Float> userMap = userIdentification.identifyUsersInFace(face);
-                                Iterator<Map.Entry<String,Float>> iterator = userMap.entrySet().iterator();
-                                while (iterator.hasNext()) {
-                                    Map.Entry<String,Float> entry = iterator.next();
-                                    observer.onNext(new Pair<>(entry.getKey(), entry.getValue()));
-                                }
-                                observer.onComplete();
-                            } catch (Exception e) {
-                                observer.onError(e);
-                            }
-                        }));
+                .flatMapObservable(userIdentification -> observer -> {
+                    try {
+                        Map<String,Float> userMap = userIdentification.identifyUsersInFace(face);
+                        Iterator<Map.Entry<String,Float>> iterator = userMap.entrySet().iterator();
+                        while (iterator.hasNext()) {
+                            Map.Entry<String,Float> entry = iterator.next();
+                            observer.onNext(new Pair<>(entry.getKey(), entry.getValue()));
+                        }
+                        observer.onComplete();
+                    } catch (Exception e) {
+                        observer.onError(e);
+                    }
+                });
         return observable.sorted((pair1, pair2) -> {
             if (pair1.getValue1() == pair2.getValue1()) {
                 return pair1.getValue0().compareTo(pair2.getValue0());
@@ -1075,6 +1107,137 @@ public class RxVerID {
                 emitter.onError(e);
             }
         });
+    }
+
+    /**
+     * Authenticate user in face
+     * @param user User to authenticate
+     * @param face Face in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInFace(String user, RecognizableFace face) {
+        return getVerID()
+                .flatMap(verID -> authenticateUserInFace(verID, user, face));
+    }
+
+    /**
+     * Authenticate user in face
+     * @param verID Ver-ID instance
+     * @param user User to authenticate
+     * @param face Face in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInFace(VerID verID, String user, RecognizableFace face) {
+        return authenticateUserInFaces(verID, user, new RecognizableFace[]{face});
+    }
+
+    /**
+     * Authenticate user in image
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(String user, Uri image) {
+        return getVerID()
+                .flatMap(verID -> authenticateUserInImage(verID, user, image));
+    }
+
+    /**
+     * Authenticate user in image
+     * @param verID Ver-ID instance
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(VerID verID, String user, Uri image) {
+        return detectRecognizableFacesInImage(verID, image, 4)
+                .flatMap(face -> authenticateUserInFace(verID, user, face).toObservable())
+                .filter(authenticated -> authenticated)
+                .first(false);
+    }
+
+    /**
+     * Authenticate user in image
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(String user, VerIDImage image) {
+        return getVerID()
+                .flatMap(verID -> authenticateUserInImage(verID, user, image));
+    }
+
+    /**
+     * Authenticate user in image
+     * @param verID Ver-ID instance
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(VerID verID, String user, VerIDImage image) {
+        return detectRecognizableFacesInImage(verID, image, 4)
+                .flatMap(face -> authenticateUserInFace(verID, user, face).toObservable())
+                .filter(authenticated -> authenticated)
+                .first(false);
+    }
+
+    /**
+     * Authenticate user in image
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(String user, Bitmap image) {
+        return getVerID()
+                .flatMap(verID -> authenticateUserInImage(verID, user, image));
+    }
+
+    /**
+     * Authenticate user in image
+     * @param verID Ver-ID instance
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(VerID verID, String user, Bitmap image) {
+        return authenticateUserInImage(verID, user, image, ExifInterface.ORIENTATION_NORMAL);
+    }
+
+    /**
+     * Authenticate user in image
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(String user, Bitmap image, @ExifOrientation int exifOrientation) {
+        return getVerID()
+                .flatMap(verID -> authenticateUserInImage(verID, user, image, exifOrientation));
+    }
+
+    /**
+     * Authenticate user in image
+     * @param verID Ver-ID instance
+     * @param user User to authenticate
+     * @param image Image in which to authenticate the user
+     * @param exifOrientation EXIF orientation of the bitmap
+     * @return Single whose return value indicates whether the user was authenticated {@literal true} or not {@literal false}
+     * @since 1.6.0
+     */
+    public Single<Boolean> authenticateUserInImage(VerID verID, String user, Bitmap image, @ExifOrientation int exifOrientation) {
+        return detectRecognizableFacesInImage(verID, image, exifOrientation,4)
+                .flatMap(face -> authenticateUserInFace(verID, user, face).toObservable())
+                .filter(authenticated -> authenticated)
+                .first(false);
     }
 
     // endregion

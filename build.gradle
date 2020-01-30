@@ -16,7 +16,7 @@ buildscript {
 }
 
 ext {
-    veridVersion = '[1.14.1,2.0.0['
+    veridVersion = '[1.16.0,2.0.0['
     rxjavaVersion = '[2.2,3.0['
     rxandroidVersion = '[2.1,3.0['
     appcompatVersion = '[1.1,2.0['
@@ -24,7 +24,7 @@ ext {
     annotationVersion = '[1.1,2.0['
     javatuplesVersion = '[1.2,2.0['
     versionMajor = 1
-    versionMinor = 6
+    versionMinor = 7
     versionPatch = 0
     versionClassifier = null
     versionClassifierVersion = ""

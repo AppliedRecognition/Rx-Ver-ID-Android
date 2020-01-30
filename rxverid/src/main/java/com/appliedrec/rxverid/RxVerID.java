@@ -69,38 +69,47 @@ public class RxVerID {
      */
     public static class Builder {
 
-        static class Configuration extends Object {
+        static class Configuration {
             private Context context;
             private IFaceDetectionFactory faceDetectionFactory;
             private IFaceRecognitionFactory faceRecognitionFactory;
             private IUserManagementFactory userManagementFactory;
+            private String veridPassword;
 
-            public Context getContext() {
+            Context getContext() {
                 return context;
             }
 
-            public IFaceDetectionFactory getFaceDetectionFactory() {
+            IFaceDetectionFactory getFaceDetectionFactory() {
                 return faceDetectionFactory;
             }
 
-            public void setFaceDetectionFactory(IFaceDetectionFactory faceDetectionFactory) {
+            void setFaceDetectionFactory(IFaceDetectionFactory faceDetectionFactory) {
                 this.faceDetectionFactory = faceDetectionFactory;
             }
 
-            public IFaceRecognitionFactory getFaceRecognitionFactory() {
+            IFaceRecognitionFactory getFaceRecognitionFactory() {
                 return faceRecognitionFactory;
             }
 
-            public void setFaceRecognitionFactory(IFaceRecognitionFactory faceRecognitionFactory) {
+            void setFaceRecognitionFactory(IFaceRecognitionFactory faceRecognitionFactory) {
                 this.faceRecognitionFactory = faceRecognitionFactory;
             }
 
-            public IUserManagementFactory getUserManagementFactory() {
+            IUserManagementFactory getUserManagementFactory() {
                 return userManagementFactory;
             }
 
-            public void setUserManagementFactory(IUserManagementFactory userManagementFactory) {
+            void setUserManagementFactory(IUserManagementFactory userManagementFactory) {
                 this.userManagementFactory = userManagementFactory;
+            }
+
+            String getVerIDPassword() {
+                return veridPassword;
+            }
+
+            void setVerIDPassword(String veridPassword) {
+                this.veridPassword = veridPassword;
             }
 
             @Override
@@ -164,6 +173,17 @@ public class RxVerID {
         }
 
         /**
+         * Set Ver-ID identity file password
+         * @param veridPassword Ver-ID password
+         * @return {@link Builder}
+         * @since 1.7.0
+         */
+        public Builder setVerIDPassword(String veridPassword) {
+            getConfiguration().setVerIDPassword(veridPassword);
+            return this;
+        }
+
+        /**
          * Build an instance of {@link RxVerID}
          * @return Instance of {@link RxVerID}
          * @since 1.0.0
@@ -175,6 +195,7 @@ public class RxVerID {
                 rxVerID.faceDetectionFactory = getConfiguration().getFaceDetectionFactory();
                 rxVerID.faceRecognitionFactory = getConfiguration().getFaceRecognitionFactory();
                 rxVerID.userManagementFactory = getConfiguration().getUserManagementFactory();
+                rxVerID.veridPassword = getConfiguration().getVerIDPassword();
                 instances.put(getConfiguration(), rxVerID);
             }
             return rxVerID;
@@ -201,6 +222,7 @@ public class RxVerID {
     private IFaceDetectionFactory faceDetectionFactory;
     private IFaceRecognitionFactory faceRecognitionFactory;
     private IUserManagementFactory userManagementFactory;
+    private String veridPassword;
     private Object veridLock = new Object();
 
     // endregion
@@ -239,7 +261,7 @@ public class RxVerID {
     // endregion
 
     VerIDFactory createVerIDFactory() {
-        return new VerIDFactory(getContext(), null);
+        return new VerIDFactory(getContext());
     }
 
     // region Ver-ID
@@ -266,6 +288,9 @@ public class RxVerID {
                 }
                 if (getUserManagementFactory() != null) {
                     verIDFactory.setUserManagementFactory(getUserManagementFactory());
+                }
+                if (veridPassword != null) {
+                    verIDFactory.setVeridPassword(veridPassword);
                 }
                 VerID verID = verIDFactory.createVerIDSync();
                 synchronized (veridLock) {

@@ -1,4 +1,4 @@
-![Maven metadata URL](https://img.shields.io/maven-metadata/v/https/dev.ver-id.com/artifactory/gradle-release/com/appliedrec/verid/rx/maven-metadata.xml.svg)
+![Maven metadata URL](https://img.shields.io/maven-metadata/v/https/dev.ver-id.com/artifactory/gradle-release/com/appliedrec/verid/rx/maven-metadata.xml.svg) ![Android CI](https://github.com/AppliedRecognition/Rx-Ver-ID-Android/workflows/Android%20CI/badge.svg)
 
 # Rx-Ver-ID-Android
 

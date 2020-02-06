@@ -13,6 +13,12 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Make environment setup script executable
+      shell: bash
+      run: chmod +x ./environmentSetup.sh
+    - name: Set up environment
+      shell: bash
+      run: ./environmentSetup.sh
     - name: Make gradlew executable
       shell: bash
       run: chmod +x ./gradlew

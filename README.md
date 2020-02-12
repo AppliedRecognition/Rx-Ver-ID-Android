@@ -6,7 +6,21 @@ Reactive version of Ver-ID Core for Android
 
 ## Installation
 
-1. [Request API secret](https://dev.ver-id.com/admin/register) for your app. We will need your app's package name.
+1. [Register your app](https://dev.ver-id.com/licensing/). You will need your app's package name.
+2. Registering your app will generate an evaluation licence for your app. The licence is valid for 30 days. If you need a production licence please [contact Applied Recognition](mailto:sales@appliedrec.com).
+2. When you finish the registration you'll receive a file called **Ver-ID identity.p12** and a password. Copy the password to a secure location.
+3. Copy the **Ver-ID identity.p12** into your app's assets folder. A common location is **your\_app_module/src/main/assets**.
+8. Ver-ID will need the password you received at registration. Add the password in your app's **AndroidManifest.xml**:
+
+    ~~~xml
+    <manifest>
+        <application>
+            <meta-data
+                android:name="com.appliedrec.verid.password"
+                android:value="your password goes here" />
+        </application>
+    </manifest>
+    ~~~
 1. Add the Applied Recognition repository to the repositories in your app module's **gradle.build** file:
 
     ~~~groovy
@@ -23,17 +37,6 @@ Reactive version of Ver-ID Core for Android
     dependencies {
       implementation 'com.appliedrec.verid:rx:[1.6.0,2.0.0['
     }
-    ~~~
-1. Add the API secret in your app's manifest XML:
-
-    ~~~xml
-    <manifest>
-        <application>
-            <meta-data
-                android:name="com.appliedrec.verid.apiSecret"
-                android:value="yourApiSecret" />
-        </application>
-    </manifest>
     ~~~
 
 ## Examples

@@ -1260,7 +1260,7 @@ public class RxVerIDTest {
     public void test_getFailedSessionResultFromIntent_fails() {
         RxVerID rxVerID = mock(RxVerID.class);
         when(rxVerID.getSessionResultFromIntent(any())).thenCallRealMethod();
-        Exception exception = mock(Exception.class);
+        VerIDSessionException exception = mock(VerIDSessionException.class);
         VerIDSessionResult result = mock(VerIDSessionResult.class);
         when(result.getError()).thenReturn(exception);
         Intent intent = mock(Intent.class);
@@ -1270,7 +1270,7 @@ public class RxVerIDTest {
 
         testObserver
                 .assertSubscribed()
-                .assertError(exception)
+                .assertError(VerIDSessionException.class)
                 .assertTerminated();
     }
 

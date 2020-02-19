@@ -1287,7 +1287,7 @@ public class RxVerID {
                 return;
             }
             if (result.getError() != null) {
-                emitter.onError(result.getError());
+                emitter.onError(new VerIDSessionException(result));
                 return;
             }
             emitter.onSuccess(result);

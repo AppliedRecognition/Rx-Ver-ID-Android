@@ -25,7 +25,7 @@ ext {
     javatuplesVersion = '[1.2,2.0['
     versionMajor = 1
     versionMinor = 8
-    versionPatch = 0
+    versionPatch = 1
     versionClassifier = null
     versionClassifierVersion = ""
     minSdkVersion = 21

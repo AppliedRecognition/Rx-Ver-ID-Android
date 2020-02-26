@@ -1,4 +1,4 @@
-name: Android CI
+name: CI
 
 on: [push]
 
@@ -15,7 +15,7 @@ jobs:
         java-version: 1.8
     - name: Make environment setup script executable
       shell: bash
-      run: chmod +x ./environmentSetup.sh
+      run: chmod +x ./environmentSetup.sh ${{ secrets.Artifactory_username }} ${{ secrets.Artifactory_password }}
     - name: Set up environment
       shell: bash
       run: ./environmentSetup.sh

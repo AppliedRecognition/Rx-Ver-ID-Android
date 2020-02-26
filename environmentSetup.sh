@@ -30,13 +30,12 @@ if [ ! -f "$GRADLE_PROPERTIES" ]; then
 
     echo "Creating Gradle Properties file..."
     touch $GRADLE_PROPERTIES
-
-    echo "Writing verid_artifactory_password to gradle.properties..."
-    echo "verid_artifactory_password=${verid_artifactory_password}" >> $GRADLE_PROPERTIES
-    echo "Writing verid_artifactory_repo to gradle.properties..."
-    echo "verid_artifactory_repo=${verid_artifactory_repo}" >> $GRADLE_PROPERTIES
-    echo "Writing verid_artifactory_url to gradle.properties..."
-    echo "verid_artifactory_url=${verid_artifactory_url}" >> $GRADLE_PROPERTIES
-    echo "Writing verid_artifactory_username to gradle.properties..."
-    echo "verid_artifactory_username=${verid_artifactory_username}" >> $GRADLE_PROPERTIES
 fi
+echo "Writing verid_artifactory_password to gradle.properties..."
+echo "verid_artifactory_password=${2}" >> $GRADLE_PROPERTIES
+echo "Writing verid_artifactory_repo to gradle.properties..."
+echo "verid_artifactory_repo=gradle-release-local" >> $GRADLE_PROPERTIES
+echo "Writing verid_artifactory_url to gradle.properties..."
+echo "verid_artifactory_url=https://dev.ver-id.com/artifactory/" >> $GRADLE_PROPERTIES
+echo "Writing verid_artifactory_username to gradle.properties..."
+echo "verid_artifactory_username=${1}" >> $GRADLE_PROPERTIES

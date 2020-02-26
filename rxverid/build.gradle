@@ -49,6 +49,7 @@ task javadoc(type: Javadoc, dependsOn: ':doclet:compileJava') {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.appliedrec.verid:core:$rootProject.veridVersion"
+    implementation "com.appliedrec.verid:identity:$rootProject.veridIdentityVersion"
     implementation "androidx.appcompat:appcompat:$rootProject.appcompatVersion"
     implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxjavaVersion"
     implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxandroidVersion"

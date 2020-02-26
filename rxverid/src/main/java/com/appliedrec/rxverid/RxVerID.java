@@ -28,6 +28,7 @@ import com.appliedrec.verid.core.VerID;
 import com.appliedrec.verid.core.VerIDFactory;
 import com.appliedrec.verid.core.VerIDImage;
 import com.appliedrec.verid.core.VerIDSessionResult;
+import com.appliedrec.verid.identity.VerIDSDKIdentity;
 
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
@@ -35,6 +36,7 @@ import org.javatuples.Triplet;
 import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -75,6 +77,7 @@ public class RxVerID {
             private IFaceRecognitionFactory faceRecognitionFactory;
             private IUserManagementFactory userManagementFactory;
             private String veridPassword;
+            private VerIDSDKIdentity identity;
 
             Context getContext() {
                 return context;
@@ -112,12 +115,37 @@ public class RxVerID {
                 this.veridPassword = veridPassword;
             }
 
+            VerIDSDKIdentity getIdentity() {
+                return this.identity;
+            }
+
+            void setIdentity(VerIDSDKIdentity identity) {
+                this.identity = identity;
+            }
+
             @Override
             public boolean equals(@Nullable Object obj) {
                 if (!(obj instanceof Configuration)) {
                     return false;
                 }
                 Configuration other = (Configuration)obj;
+                if (getIdentity() != null && other.getIdentity() != null) {
+                    if (!getIdentity().getCommonName().equals(other.getIdentity().getCommonName())) {
+                        return false;
+                    }
+                    byte[] toSign = {0,0,0,0,0,0,0,0};
+                    try {
+                        byte[] sig1 = getIdentity().sign(toSign);
+                        byte[] sig2 = other.getIdentity().sign(toSign);
+                        if (!Arrays.equals(sig1, sig2)) {
+                            return false;
+                        }
+                    } catch (Exception ignore) {
+                    }
+                }
+                if ((getIdentity() == null) != (other.getIdentity() == null)) {
+                    return false;
+                }
                 return other.getContext() == getContext() && other.getFaceDetectionFactory() == getFaceRecognitionFactory() && other.getFaceRecognitionFactory() == getFaceRecognitionFactory() && other.getUserManagementFactory() == getUserManagementFactory();
             }
         }
@@ -184,6 +212,18 @@ public class RxVerID {
         }
 
         /**
+         * Set Ver-ID SDK identity
+         * <p>Requires Ver-ID Core version 1.19.0 or newer. Otherwise it will be ignored. Use {@link #setVerIDPassword(String)} if linking with older versions of Ver-ID Core.</p>
+         * @param identity Identity <a href="https://github.com/AppliedRecognition/Ver-ID-SDK-Identity-Android/blob/master/README.md">created</a> from credentials received after registering your app on the <a href="https://dev.ver-id.com/licensing/">Ver-ID developer website</a>
+         * @return {@link Builder}
+         * @since 1.9.0
+         */
+        public Builder setVerIDSDKIdentity(VerIDSDKIdentity identity) {
+            getConfiguration().setIdentity(identity);
+            return this;
+        }
+
+        /**
          * Build an instance of {@link RxVerID}
          * @return Instance of {@link RxVerID}
          * @since 1.0.0
@@ -196,6 +236,7 @@ public class RxVerID {
                 rxVerID.faceRecognitionFactory = getConfiguration().getFaceRecognitionFactory();
                 rxVerID.userManagementFactory = getConfiguration().getUserManagementFactory();
                 rxVerID.veridPassword = getConfiguration().getVerIDPassword();
+                rxVerID.identity = getConfiguration().getIdentity();
                 instances.put(getConfiguration(), rxVerID);
             }
             return rxVerID;
@@ -222,6 +263,7 @@ public class RxVerID {
     private IFaceDetectionFactory faceDetectionFactory;
     private IFaceRecognitionFactory faceRecognitionFactory;
     private IUserManagementFactory userManagementFactory;
+    private VerIDSDKIdentity identity;
     private String veridPassword;
     private Object veridLock = new Object();
 
@@ -288,6 +330,14 @@ public class RxVerID {
                 }
                 if (getUserManagementFactory() != null) {
                     verIDFactory.setUserManagementFactory(getUserManagementFactory());
+                }
+                if (identity != null) {
+                    try {
+                        //noinspection JavaReflectionMemberAccess
+                        Method method = VerIDFactory.class.getMethod("setIdentity", VerIDSDKIdentity.class);
+                        method.invoke(verIDFactory, identity);
+                    } catch (Exception ignore) {
+                    }
                 }
                 if (veridPassword != null) {
                     verIDFactory.setVeridPassword(veridPassword);

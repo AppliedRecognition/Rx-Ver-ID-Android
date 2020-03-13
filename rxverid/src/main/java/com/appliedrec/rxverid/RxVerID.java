@@ -181,7 +181,7 @@ public class RxVerID {
          * Set context
          * @param context Context
          * @return {@link Builder}
-         * @since 2.0.0
+         * @since 1.10.0
          */
         public Builder setContext(@NonNull Context context) {
             getConfiguration().setContext(context);
@@ -237,10 +237,24 @@ public class RxVerID {
          * <p>Requires Ver-ID Core version 1.19.0 or newer. Otherwise it will be ignored. Use {@link #setVerIDPassword(String)} if linking with older versions of Ver-ID Core.</p>
          * @param identity Identity <a href="https://github.com/AppliedRecognition/Ver-ID-SDK-Identity-Android/blob/master/README.md">created</a> from credentials received after registering your app on the <a href="https://dev.ver-id.com/licensing/">Ver-ID developer website</a>
          * @return {@link Builder}
-         * @since 2.0.0
+         * @since 1.10.0
          */
         public Builder setVerIDIdentity(VerIDIdentity identity) {
             getConfiguration().setIdentity(identity);
+            return this;
+        }
+
+        /**
+         * Set Ver-ID identity
+         * <p>Requires Ver-ID Core version 1.19.0 or newer. Otherwise it will be ignored. Use {@link #setVerIDPassword(String)} if linking with older versions of Ver-ID Core.</p>
+         * @param identity Identity <a href="https://github.com/AppliedRecognition/Ver-ID-SDK-Identity-Android/blob/master/README.md">created</a> from credentials received after registering your app on the <a href="https://dev.ver-id.com/licensing/">Ver-ID developer website</a>
+         * @return {@link Builder}
+         * @since 1.9.0
+         * @deprecated Deprecated in 1.10.0. Use {@link #setVerIDIdentity(VerIDIdentity)}
+         */
+        @Deprecated
+        public Builder setVerIDSDKIdentity(VerIDSDKIdentity identity) {
+            getConfiguration().setIdentity(identity.getVerIDIdentity());
             return this;
         }
 
@@ -454,7 +468,7 @@ public class RxVerID {
      * <p>The supported input URI schemes are http(s) and anything that can be read using {@link android.content.ContentResolver}.</p>
      * @param imageUri Image URI
      * @return Single with a byte array input stream of the image data
-     * @since 2.0.0
+     * @since 1.10.0
      */
     Single<ByteArrayInputStream> getInputStreamFromUri(Uri imageUri) {
         return Single.<ByteArrayInputStream>create(emitter -> {
@@ -484,7 +498,7 @@ public class RxVerID {
      * Get bitmap from input stream
      * @param inputStream Input stream
      * @return Single with a bitmap
-     * @since 2.0.0
+     * @since 1.10.0
      */
     Single<Bitmap> getBitmapFromStream(ByteArrayInputStream inputStream) {
         return Single.<Bitmap>create(emitter -> {
@@ -505,7 +519,7 @@ public class RxVerID {
      * Get a bitmap and EXIF orientation from a byte array input stream
      * @param inputStream Input stream
      * @return Single with a pair of bitmap and orientation
-     * @since 2.0.0
+     * @since 1.10.0
      */
     Single<Pair<Bitmap,Integer>> getBitmapAndOrientationFromInputStream(ByteArrayInputStream inputStream) {
         return getBitmapFromStream(inputStream).flatMap(bitmap -> getExifFromStream(inputStream).map(exifInterface -> {

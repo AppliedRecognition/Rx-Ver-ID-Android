@@ -23,7 +23,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * Transformer that can be used in a {@link Observable#compose(ObservableTransformer)}, {@link Single#compose(SingleTransformer)}, {@link Maybe#compose(MaybeTransformer)}, {@link Completable#compose(CompletableTransformer)} and {@link Flowable#compose(FlowableTransformer)} to subscribe and observe on specified schedulers
  * @param <T> Type
- * @since 2.0.0
+ * @since 1.10.0
  */
 public class SchedulersTransformer<T> implements ObservableTransformer<T,T>, SingleTransformer<T,T>, FlowableTransformer<T,T>, MaybeTransformer<T,T>, CompletableTransformer {
 
@@ -34,7 +34,7 @@ public class SchedulersTransformer<T> implements ObservableTransformer<T,T>, Sin
      * Instance that schedules subscriptions on {@link Schedulers#io()} and observations on {@link AndroidSchedulers#mainThread()}.
      * @param <T> Type
      * @return Transformer
-     * @since 2.0.0
+     * @since 1.10.0
      */
     public static <T> SchedulersTransformer<T> defaultInstance() {
         return new SchedulersTransformer<>(Schedulers.io(), AndroidSchedulers.mainThread());
@@ -44,7 +44,7 @@ public class SchedulersTransformer<T> implements ObservableTransformer<T,T>, Sin
      * Constructor with schedulers
      * @param subscribeScheduler Subscription scheduler
      * @param observeScheduler Observation scheduler
-     * @since 2.0.0
+     * @since 1.10.0
      */
     public SchedulersTransformer(Scheduler subscribeScheduler, Scheduler observeScheduler) {
         this.subscribeScheduler = subscribeScheduler;

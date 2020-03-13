@@ -28,15 +28,21 @@ import com.appliedrec.verid.core.VerID;
 import com.appliedrec.verid.core.VerIDFactory;
 import com.appliedrec.verid.core.VerIDImage;
 import com.appliedrec.verid.core.VerIDSessionResult;
+import com.appliedrec.verid.identity.VerIDIdentity;
 import com.appliedrec.verid.identity.VerIDSDKIdentity;
 
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Method;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -77,7 +83,7 @@ public class RxVerID {
             private IFaceRecognitionFactory faceRecognitionFactory;
             private IUserManagementFactory userManagementFactory;
             private String veridPassword;
-            private VerIDSDKIdentity identity;
+            private VerIDIdentity identity;
 
             Context getContext() {
                 return context;
@@ -115,11 +121,11 @@ public class RxVerID {
                 this.veridPassword = veridPassword;
             }
 
-            VerIDSDKIdentity getIdentity() {
+            VerIDIdentity getIdentity() {
                 return this.identity;
             }
 
-            void setIdentity(VerIDSDKIdentity identity) {
+            void setIdentity(VerIDIdentity identity) {
                 this.identity = identity;
             }
 
@@ -148,6 +154,10 @@ public class RxVerID {
                 }
                 return other.getContext() == getContext() && other.getFaceDetectionFactory() == getFaceRecognitionFactory() && other.getFaceRecognitionFactory() == getFaceRecognitionFactory() && other.getUserManagementFactory() == getUserManagementFactory();
             }
+
+            void setContext(Context context) {
+                this.context = context;
+            }
         }
 
         private static HashMap<Configuration,RxVerID> instances = new HashMap<>();
@@ -165,6 +175,17 @@ public class RxVerID {
 
         Configuration getConfiguration() {
             return configuration;
+        }
+
+        /**
+         * Set context
+         * @param context Context
+         * @return {@link Builder}
+         * @since 2.0.0
+         */
+        public Builder setContext(@NonNull Context context) {
+            getConfiguration().setContext(context);
+            return this;
         }
 
         /**
@@ -212,13 +233,13 @@ public class RxVerID {
         }
 
         /**
-         * Set Ver-ID SDK identity
+         * Set Ver-ID identity
          * <p>Requires Ver-ID Core version 1.19.0 or newer. Otherwise it will be ignored. Use {@link #setVerIDPassword(String)} if linking with older versions of Ver-ID Core.</p>
          * @param identity Identity <a href="https://github.com/AppliedRecognition/Ver-ID-SDK-Identity-Android/blob/master/README.md">created</a> from credentials received after registering your app on the <a href="https://dev.ver-id.com/licensing/">Ver-ID developer website</a>
          * @return {@link Builder}
-         * @since 1.9.0
+         * @since 2.0.0
          */
-        public Builder setVerIDSDKIdentity(VerIDSDKIdentity identity) {
+        public Builder setVerIDIdentity(VerIDIdentity identity) {
             getConfiguration().setIdentity(identity);
             return this;
         }
@@ -263,9 +284,9 @@ public class RxVerID {
     private IFaceDetectionFactory faceDetectionFactory;
     private IFaceRecognitionFactory faceRecognitionFactory;
     private IUserManagementFactory userManagementFactory;
-    private VerIDSDKIdentity identity;
+    private VerIDIdentity identity;
     private String veridPassword;
-    private Object veridLock = new Object();
+    private final Object veridLock = new Object();
 
     // endregion
 
@@ -319,7 +340,7 @@ public class RxVerID {
                 return Single.just(verID);
             }
         }
-        return Single.create(emitter -> {
+        return Single.<VerID>create(emitter -> {
             try {
                 VerIDFactory verIDFactory = createVerIDFactory();
                 if (getFaceDetectionFactory() != null) {
@@ -332,12 +353,7 @@ public class RxVerID {
                     verIDFactory.setUserManagementFactory(getUserManagementFactory());
                 }
                 if (identity != null) {
-                    try {
-                        //noinspection JavaReflectionMemberAccess
-                        Method method = VerIDFactory.class.getMethod("setIdentity", VerIDSDKIdentity.class);
-                        method.invoke(verIDFactory, identity);
-                    } catch (Exception ignore) {
-                    }
+                    verIDFactory.setIdentity(identity);
                 }
                 if (veridPassword != null) {
                     verIDFactory.setVeridPassword(veridPassword);
@@ -354,7 +370,7 @@ public class RxVerID {
                     emitter.onError(e);
                 }
             }
-        }).subscribeOn(Schedulers.io()).cast(VerID.class);
+        }).subscribeOn(Schedulers.io());
     }
 
     // endregion
@@ -372,12 +388,14 @@ public class RxVerID {
      * @since 1.0.0
      */
     Single<ExifInterface> getExifFromUri(Uri uri) {
+        return getInputStreamFromUri(uri).flatMap(this::getExifFromStream);
+    }
+
+    Single<ExifInterface> getExifFromStream(ByteArrayInputStream inputStream) {
         return Single.create(emitter -> {
             try {
-                InputStream inputStream = getContext().getContentResolver().openInputStream(uri);
-                ExifInterface exifInterface = new ExifInterface(inputStream);
-                inputStream.close();
-                emitter.onSuccess(exifInterface);
+                inputStream.reset();
+                emitter.onSuccess(new ExifInterface(inputStream));
             } catch (Exception e) {
                 emitter.onError(e);
             }
@@ -392,6 +410,108 @@ public class RxVerID {
      */
     Bitmap bitmapFromStream(InputStream inputStream) {
         return BitmapFactory.decodeStream(inputStream);
+    }
+
+    URL urlFromUri(Uri uri) throws MalformedURLException {
+        return new URL(uri.getScheme(), uri.getHost(), uri.getPort(), uri.getEncodedPath());
+    }
+
+    InputStream inputStreamFromUri(Uri uri) throws Exception {
+        if (uri.getScheme().startsWith("http")) {
+            URL url = urlFromUri(uri);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            if (connection.getResponseCode() >= 400) {
+                throw new ConnectException("Invalid response code");
+            }
+            try (InputStream connectionInputStream = connection.getInputStream()) {
+                return connectionInputStream;
+            }
+        } else {
+            try (InputStream inputStream = getContext().getContentResolver().openInputStream(uri)) {
+                return inputStream;
+            }
+        }
+    }
+
+    ByteArrayInputStream byteArrayInputStreamFromInputStream(InputStream inputStream) throws Exception {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+            int read;
+            byte[] buffer = new byte[512];
+            while ((read = inputStream.read(buffer, 0, buffer.length)) > 0) {
+                byteArrayOutputStream.write(buffer, 0, read);
+            }
+            byteArrayOutputStream.flush();
+            byte[] image = byteArrayOutputStream.toByteArray();
+            try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(image)) {
+                return byteArrayInputStream;
+            }
+        }
+    }
+
+    /**
+     * Get a byte array input stream from URI
+     * <p>The supported input URI schemes are http(s) and anything that can be read using {@link android.content.ContentResolver}.</p>
+     * @param imageUri Image URI
+     * @return Single with a byte array input stream of the image data
+     * @since 2.0.0
+     */
+    Single<ByteArrayInputStream> getInputStreamFromUri(Uri imageUri) {
+        return Single.<ByteArrayInputStream>create(emitter -> {
+            try {
+                if (imageUri.getScheme().startsWith("http")) {
+                    URL url = urlFromUri(imageUri);
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setDoInput(true);
+                    if (connection.getResponseCode() >= 400) {
+                        throw new ConnectException("Invalid response code");
+                    }
+                    try (InputStream connectionInputStream = connection.getInputStream()) {
+                        emitter.onSuccess(byteArrayInputStreamFromInputStream(connectionInputStream));
+                    }
+                } else {
+                    try (InputStream inputStream = getContext().getContentResolver().openInputStream(imageUri)) {
+                        emitter.onSuccess(byteArrayInputStreamFromInputStream(inputStream));
+                    }
+                }
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        }).subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Get bitmap from input stream
+     * @param inputStream Input stream
+     * @return Single with a bitmap
+     * @since 2.0.0
+     */
+    Single<Bitmap> getBitmapFromStream(ByteArrayInputStream inputStream) {
+        return Single.<Bitmap>create(emitter -> {
+            try {
+                inputStream.reset();
+                Bitmap bitmap = bitmapFromStream(inputStream);
+                if (bitmap == null) {
+                    throw new Exception("Failed to read bitmap");
+                }
+                emitter.onSuccess(bitmap);
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        }).subscribeOn(Schedulers.io());
+    }
+
+    /**
+     * Get a bitmap and EXIF orientation from a byte array input stream
+     * @param inputStream Input stream
+     * @return Single with a pair of bitmap and orientation
+     * @since 2.0.0
+     */
+    Single<Pair<Bitmap,Integer>> getBitmapAndOrientationFromInputStream(ByteArrayInputStream inputStream) {
+        return getBitmapFromStream(inputStream).flatMap(bitmap -> getExifFromStream(inputStream).map(exifInterface -> {
+            int orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            return new Pair<>(bitmap, orientation);
+        }));
     }
 
     /**
@@ -412,16 +532,7 @@ public class RxVerID {
      * @since 1.0.0
      */
     public Single<Bitmap> convertUriToBitmap(Uri imageUri) {
-        return Single.create(emitter -> {
-            try {
-                InputStream inputStream = getContext().getContentResolver().openInputStream(imageUri);
-                Bitmap bitmap = bitmapFromStream(inputStream);
-                inputStream.close();
-                emitter.onSuccess(bitmap);
-            } catch (Exception e) {
-                emitter.onError(e);
-            }
-        });
+        return getInputStreamFromUri(imageUri).flatMap(this::getBitmapFromStream);
     }
 
     /**
@@ -431,9 +542,7 @@ public class RxVerID {
      * @since 1.0.0
      */
     public Single<VerIDImage> convertUriToVerIDImage(Uri imageUri) {
-        return convertUriToBitmap(imageUri)
-                .flatMap(bitmap -> getExifOrientationOfImage(imageUri)
-                        .flatMap(exifOrientation -> convertBitmapToVerIDImage(bitmap, exifOrientation)));
+        return getInputStreamFromUri(imageUri).flatMap(this::getBitmapAndOrientationFromInputStream).map(pair -> new VerIDImage(pair.getValue0(), pair.getValue1()));
     }
 
     /**
@@ -627,17 +736,19 @@ public class RxVerID {
      * @since 1.1.0
      */
     public Observable<Face> detectFacesInImage(VerID verID, VerIDImage image, int limit) {
-        return Observable.create(observer -> {
+        return Observable.<Face>create(observer -> {
             try {
                 Face[] faces = verID.getFaceDetection().detectFacesInImage(image, limit, 0);
-                for (Face face : faces) {
-                    observer.onNext(face);
+                if (faces != null) {
+                    for (Face face : faces) {
+                        observer.onNext(face);
+                    }
                 }
                 observer.onComplete();
             } catch (Exception e) {
                 observer.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     /**
@@ -847,7 +958,7 @@ public class RxVerID {
      * @since 1.1.0
      */
     public Observable<RecognizableFace> convertFaceToRecognizableFace(VerID verID, VerIDImage image, Face face) {
-        return Observable.create(observer -> {
+        return Observable.<RecognizableFace>create(observer -> {
             try {
                 RecognizableFace[] recognizableFaces = verID.getFaceRecognition().createRecognizableFacesFromFaces(new Face[]{face}, image);
                 if (recognizableFaces.length == 0) {
@@ -860,7 +971,7 @@ public class RxVerID {
             } catch (Exception e) {
                 observer.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     // endregion
@@ -930,7 +1041,7 @@ public class RxVerID {
                     } else {
                         emitter.onSuccess(bitmap);
                     }
-                });
+                }).cast(Bitmap.class);
     }
 
     /**
@@ -941,16 +1052,7 @@ public class RxVerID {
      * @since 1.0.0
      */
     public Single<Bitmap> cropImageToFace(@NonNull Uri imageUri, @NonNull Face face) {
-        return getExifOrientationOfImage(imageUri)
-                .flatMap(this::getTransformMatrixForExifOrientation)
-                .flatMap(matrix -> convertUriToBitmap(imageUri)
-                        .map(bitmap -> {
-                            if (matrix.isIdentity()) {
-                                return bitmap;
-                            }
-                            return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, false);
-                        }))
-                .flatMap(bitmap -> cropImageToFace(bitmap, face));
+        return getInputStreamFromUri(imageUri).flatMap(this::getBitmapAndOrientationFromInputStream).flatMap(pair -> cropImageToFace(pair.getValue0(), pair.getValue1(), face));
     }
 
     // endregion
@@ -980,14 +1082,14 @@ public class RxVerID {
      * @see IFaceRecognition#getAuthenticationThreshold()
      */
     public Single<Float> compareFaceToFaces(VerID verID, IRecognizable face, RecognizableFace[] faces) {
-        return Single.create(emitter -> {
+        return Single.<Float>create(emitter -> {
             try {
                 float score = verID.getFaceRecognition().compareSubjectFacesToFaces(new IRecognizable[]{face}, faces);
                 emitter.onSuccess(score);
             } catch (Exception e) {
                 emitter.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     // endregion
@@ -1022,7 +1124,7 @@ public class RxVerID {
             } catch (Exception e) {
                 emitter.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     /**
@@ -1053,7 +1155,7 @@ public class RxVerID {
             } catch (Exception e) {
                 emitter.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     /**
@@ -1082,7 +1184,7 @@ public class RxVerID {
             } catch (Exception e) {
                 emitter.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     /**
@@ -1102,7 +1204,7 @@ public class RxVerID {
      * @since 1.1.0
      */
     public Observable<String> getUsers(VerID verID) {
-        return Observable.create(emitter -> {
+        return Observable.<String>create(emitter -> {
             try {
                 String[] users = verID.getUserManagement().getUsers();
                 Arrays.sort(users);
@@ -1113,7 +1215,7 @@ public class RxVerID {
             } catch (Exception e) {
                 emitter.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     /**
@@ -1135,7 +1237,7 @@ public class RxVerID {
      * @since 1.1.0
      */
     public Observable<IRecognizable> getFacesOfUser(VerID verID, String user) {
-        return Observable.create(emitter -> {
+        return Observable.<IRecognizable>create(emitter -> {
             try {
                 IRecognizable[] faces = verID.getUserManagement().getFacesOfUser(user);
                 for (IRecognizable face : faces) {
@@ -1145,7 +1247,7 @@ public class RxVerID {
             } catch (Exception e) {
                 emitter.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     // endregion
@@ -1173,7 +1275,7 @@ public class RxVerID {
      * @since 1.1.0
      */
     public Single<Boolean> authenticateUserInFaces(VerID verID, String user, RecognizableFace[] faces) {
-        return Single.create(emitter -> {
+        return Single.<Boolean>create(emitter -> {
             try {
                 IRecognizable[] userFaces = verID.getUserManagement().getFacesOfUser(user);
                 float score = verID.getFaceRecognition().compareSubjectFacesToFaces(userFaces, faces);
@@ -1181,7 +1283,7 @@ public class RxVerID {
             } catch (Exception e) {
                 emitter.onError(e);
             }
-        });
+        }).subscribeOn(Schedulers.io());
     }
 
     /**

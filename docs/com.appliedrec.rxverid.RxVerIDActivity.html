@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Ver-ID API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+<aside><h2>Classes</h2><ul><li><a href="com.appliedrec.rxverid.RxVerID.Builder.html">RxVerID.Builder</a></li><li><a href="com.appliedrec.rxverid.RxVerID.html">RxVerID</a></li><li><a href="com.appliedrec.rxverid.RxVerIDActivity.html">RxVerIDActivity</a></li><li><a href="com.appliedrec.rxverid.RxVerIDHelper.html">RxVerIDHelper</a></li><li><a href="com.appliedrec.rxverid.SchedulersTransformer.html">SchedulersTransformer</a></li><li><a href="com.appliedrec.rxverid.VerIDSessionException.html">VerIDSessionException</a></li></ul><h2>Interfaces</h2><ul><li><a href="com.appliedrec.rxverid.IRxVerIDSettable.html">IRxVerIDSettable</a></li></ul></aside>
+</body>
+</html>
+<h1>RxVerIDActivity</h1>
+<section>
+<h4>Base activity class with access to a RxVerID instance</h4>
+</section>
+<h4>Package com.appliedrec.rxverid</h4>
+<code>public class  RxVerIDActivity</code>
+<ul class="ancestry"><li>com.appliedrec.rxverid.RxVerIDActivity
+<ul class="ancestry"><li>AppCompatActivity
+<ul class="ancestry"><li>java.lang.Object
+</li></ul>
+</li></ul>
+</li></ul>
+<h2>Implements</h2>
+<ul class="ancestry">
+<li>com.appliedrec.rxverid.IRxVerIDSettable</li>
+</ul>
+<section><h2>Methods</h2><dl>
+<dt><h3><a name="getRxVerID()">getRxVerID</a></h3><p>Introduced in version 2.0.0</p></dt>
+<dd>
+<code>public getRxVerID()</code>
+<p>Get an instance of RxVerID
+ <p>You will need to call <a href="com.appliedrec.rxverid.RxVerIDHelper.html#registerRxVerIDForApplication(RxVerID, Application)">com.appliedrec.rxverid.RxVerIDHelper.html#registerRxVerIDForApplication(RxVerID, Application)</a> or <a href="com.appliedrec.rxverid.RxVerIDHelper.html#registerDefaultRxVerIDForApplication(Application)">com.appliedrec.rxverid.RxVerIDHelper.html#registerDefaultRxVerIDForApplication(Application)</a>. Otherwise the method returns null.</p></p>
+<h4>Returns</h4>
+<dl>
+<dt><code><a href="com.appliedrec.rxverid.RxVerID.html">com.appliedrec.rxverid.RxVerID</a></code></dt>
+<dd>RxVerID</dd>
+</dl>
+
+</dd>
+<dt><h3><a name="setRxVerID(RxVerID)">setRxVerID</a></h3><p>Introduced in version 2.0.0</p></dt>
+<dd>
+<code>public setRxVerID(RxVerID)</code>
+<p>Called automatically at <a href="android.app.Activity.html#onCreate(Bundle)">android.app.Activity.html#onCreate(Bundle)</a></p>
+<h4>Parameters</h4>
+<dl>
+<dt>rxVerID <code><a href="com.appliedrec.rxverid.RxVerID.html">com.appliedrec.rxverid.RxVerID</a></code></dt>
+<dd>{@link RxVerID} or {@literal null}</dd>
+</dl>
+
+</dd>
+</dl></section>

@@ -1,12 +1,12 @@
 package com.appliedrec.rxverid;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import androidx.exifinterface.media.ExifInterface;
 
 import com.appliedrec.verid.core.Bearing;
@@ -29,21 +29,33 @@ import com.appliedrec.verid.core.VerIDSessionResult;
 
 import org.javatuples.Pair;
 import org.javatuples.Triplet;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.Single;
+import io.reactivex.android.plugins.RxAndroidPlugins;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.internal.schedulers.ExecutorScheduler;
 import io.reactivex.observers.TestObserver;
+import io.reactivex.plugins.RxJavaPlugins;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -59,6 +71,28 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RxVerIDTest {
+
+    @BeforeClass
+    public static void setupRxSchedulers() {
+        Scheduler immediate = new Scheduler() {
+            @Override
+            public Disposable scheduleDirect(@NonNull Runnable run, long delay, @NonNull TimeUnit unit) {
+                // this prevents StackOverflowErrors when scheduling with a delay
+                return super.scheduleDirect(run, 0, unit);
+            }
+
+            @Override
+            public Scheduler.Worker createWorker() {
+                return new ExecutorScheduler.ExecutorWorker(Runnable::run, true);
+            }
+        };
+
+        RxJavaPlugins.setInitIoSchedulerHandler(scheduler -> immediate);
+        RxJavaPlugins.setInitComputationSchedulerHandler(scheduler -> immediate);
+        RxJavaPlugins.setInitNewThreadSchedulerHandler(scheduler -> immediate);
+        RxJavaPlugins.setInitSingleSchedulerHandler(scheduler -> immediate);
+        RxAndroidPlugins.setInitMainThreadSchedulerHandler(scheduler -> immediate);
+    }
 
     @Ignore
     @Test
@@ -565,24 +599,25 @@ public class RxVerIDTest {
             Uri mockUri = mock(Uri.class);
             Face mockFace = mock(Face.class);
             Bitmap mockBitmap = mock(Bitmap.class);
-            Matrix mockMatrix = mock(Matrix.class);
-            when(mockMatrix.isIdentity()).thenReturn(true);
+            Bitmap mockCroppedBitmap = mock(Bitmap.class);
+            ByteArrayInputStream mockByteArrayInputStream = mock(ByteArrayInputStream.class);
             RxVerID mockRxVerID = mock(RxVerID.class);
-            when(mockRxVerID.cropImageToFace(any(Uri.class), any())).thenCallRealMethod();
-            when(mockRxVerID.getExifOrientationOfImage(any(Uri.class))).thenReturn(Single.just(ExifInterface.ORIENTATION_NORMAL));
-            when(mockRxVerID.convertUriToBitmap(any())).thenReturn(Single.just(mockBitmap));
-            when(mockRxVerID.getTransformMatrixForExifOrientation(anyInt())).thenReturn(Single.just(mockMatrix));
-            when(mockRxVerID.cropImageToFace(any(Bitmap.class), any())).thenReturn(Single.just(mockBitmap));
+            when(mockRxVerID.getInputStreamFromUri(any())).thenReturn(Single.just(mockByteArrayInputStream));
+            when(mockRxVerID.getBitmapAndOrientationFromInputStream(any())).thenReturn(Single.just(new Pair<>(mockBitmap, ExifInterface.ORIENTATION_NORMAL)));
+            when(mockRxVerID.cropImageToFace(eq(mockBitmap), anyInt(), eq(mockFace))).thenReturn(Single.just(mockCroppedBitmap));
+            when(mockRxVerID.cropImageToFace(eq(mockUri), eq(mockFace))).thenCallRealMethod();
 
             TestObserver<Bitmap> testObserver = mockRxVerID.cropImageToFace(mockUri, mockFace).test();
 
             testObserver
                     .assertSubscribed()
                     .assertNoErrors()
-                    .assertValue(mockBitmap)
+                    .assertValue(mockCroppedBitmap)
                     .assertComplete();
 
-            verify(mockRxVerID).cropImageToFace(any(Bitmap.class), any());
+            verify(mockRxVerID).getInputStreamFromUri(eq(mockUri));
+            verify(mockRxVerID).getBitmapAndOrientationFromInputStream(eq(mockByteArrayInputStream));
+            verify(mockRxVerID).cropImageToFace(eq(mockBitmap), anyInt(), eq(mockFace));
         } catch (Exception e) {
             fail(e.getLocalizedMessage());
         }
@@ -616,23 +651,20 @@ public class RxVerIDTest {
         try {
             RxVerID rxVerID = mock(RxVerID.class);
             Bitmap mockBitmap = mock(Bitmap.class);
-            VerIDImage mockImage = mock(VerIDImage.class);
+            ByteArrayInputStream mockByteArrayInputStream = mock(ByteArrayInputStream.class);
+            when(rxVerID.getBitmapAndOrientationFromInputStream(any())).thenReturn(Single.just(new Pair<>(mockBitmap, ExifInterface.ORIENTATION_NORMAL)));
+            when(rxVerID.getInputStreamFromUri(any())).thenReturn(Single.just(mockByteArrayInputStream));
             when(rxVerID.convertUriToVerIDImage(any())).thenCallRealMethod();
-            when(rxVerID.convertUriToBitmap(any())).thenReturn(Single.just(mockBitmap));
-            when(rxVerID.getExifOrientationOfImage(any())).thenReturn(Single.just(ExifInterface.ORIENTATION_NORMAL));
-            when(rxVerID.convertBitmapToVerIDImage(any(), anyInt())).thenReturn(Single.just(mockImage));
 
             TestObserver<VerIDImage> testObserver = rxVerID.convertUriToVerIDImage(mock(Uri.class)).test();
 
             testObserver
                     .assertSubscribed()
                     .assertNoErrors()
-                    .assertValue(mockImage)
                     .assertComplete();
 
-            verify(rxVerID).convertUriToBitmap(any());
-            verify(rxVerID).getExifOrientationOfImage(any());
-            verify(rxVerID).convertBitmapToVerIDImage(any(), anyInt());
+            verify(rxVerID).getInputStreamFromUri(any());
+            verify(rxVerID).getBitmapAndOrientationFromInputStream(any());
         } catch (Exception e) {
             fail(e.getLocalizedMessage());
         }
@@ -703,18 +735,15 @@ public class RxVerIDTest {
     @Test
     public void test_convertUriToBitmap_succeeds() {
         try {
-            InputStream mockInputStream = mock(InputStream.class);
-            ContentResolver mockContentResolver = mock(ContentResolver.class);
-            when(mockContentResolver.openInputStream(any())).thenReturn(mockInputStream);
-            Context mockContext = mock(Context.class);
-            when(mockContext.getContentResolver()).thenReturn(mockContentResolver);
+            ByteArrayInputStream mockByteArrayInputStream = mock(ByteArrayInputStream.class);
             RxVerID rxVerID = mock(RxVerID.class);
-            when(rxVerID.getContext()).thenReturn(mockContext);
-            when(rxVerID.convertUriToBitmap(any())).thenCallRealMethod();
+            Uri uri = mock(Uri.class);
             Bitmap mockBitmap = mock(Bitmap.class);
-            doReturn(mockBitmap).when(rxVerID).bitmapFromStream(any());
+            when(rxVerID.getInputStreamFromUri(any())).thenReturn(Single.just(mockByteArrayInputStream));
+            when(rxVerID.getBitmapFromStream(any())).thenReturn(Single.just(mockBitmap));
+            when(rxVerID.convertUriToBitmap(any())).thenCallRealMethod();
 
-            TestObserver<Bitmap> testObserver = rxVerID.convertUriToBitmap(mock(Uri.class)).test();
+            TestObserver<Bitmap> testObserver = rxVerID.convertUriToBitmap(uri).test();
 
             testObserver
                     .assertSubscribed()
@@ -722,7 +751,8 @@ public class RxVerIDTest {
                     .assertValue(mockBitmap)
                     .assertComplete();
 
-            verify(rxVerID).bitmapFromStream(any());
+            verify(rxVerID).getInputStreamFromUri(eq(uri));
+            verify(rxVerID).getBitmapFromStream(eq(mockByteArrayInputStream));
         } catch (Exception e) {
             fail(e.getLocalizedMessage());
         }
@@ -731,12 +761,8 @@ public class RxVerIDTest {
     @Test
     public void test_convertUriToBitmap_fails() {
         try {
-            ContentResolver mockContentResolver = mock(ContentResolver.class);
-            when(mockContentResolver.openInputStream(any())).thenThrow(new FileNotFoundException());
-            Context mockContext = mock(Context.class);
-            when(mockContext.getContentResolver()).thenReturn(mockContentResolver);
             RxVerID rxVerID = mock(RxVerID.class);
-            when(rxVerID.getContext()).thenReturn(mockContext);
+            when(rxVerID.getInputStreamFromUri(any())).thenReturn(Single.error(new FileNotFoundException()));
             when(rxVerID.convertUriToBitmap(any())).thenCallRealMethod();
 
             TestObserver<Bitmap> testObserver = rxVerID.convertUriToBitmap(mock(Uri.class)).test();
@@ -1430,5 +1456,45 @@ public class RxVerIDTest {
                 .assertSubscribed()
                 .assertError(exception)
                 .assertTerminated();
+    }
+
+    @Test
+    public void test_inputStreamFromHttpUri_succeeds() {
+        try {
+            RxVerID rxVerID = mock(RxVerID.class);
+            Uri uri = mock(Uri.class);
+            URL url = mock(URL.class);
+            HttpURLConnection connection = mock(HttpURLConnection.class);
+            InputStream inputStream = mock(InputStream.class);
+            when(connection.getResponseCode()).thenReturn(200);
+            when(connection.getInputStream()).thenReturn(inputStream);
+            when(uri.getScheme()).thenReturn("http");
+            when(url.openConnection()).thenReturn(connection);
+            when(rxVerID.urlFromUri(eq(uri))).thenReturn(url);
+            when(rxVerID.inputStreamFromUri(any())).thenCallRealMethod();
+
+            assertEquals(rxVerID.inputStreamFromUri(uri), inputStream);
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void test_inputStreamFromHttpUri_fails() {
+        try {
+            RxVerID rxVerID = mock(RxVerID.class);
+            Uri uri = mock(Uri.class);
+            URL url = mock(URL.class);
+            HttpURLConnection connection = mock(HttpURLConnection.class);
+            when(connection.getResponseCode()).thenReturn(404);
+            when(uri.getScheme()).thenReturn("http");
+            when(url.openConnection()).thenReturn(connection);
+            when(rxVerID.urlFromUri(eq(uri))).thenReturn(url);
+            when(rxVerID.inputStreamFromUri(any())).thenCallRealMethod();
+
+            assertThrows(ConnectException.class, () -> rxVerID.inputStreamFromUri(uri));
+        } catch (Exception e) {
+            fail(e.getLocalizedMessage());
+        }
     }
 }

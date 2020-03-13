@@ -35,7 +35,7 @@ Reactive version of Ver-ID Core for Android
 
     ~~~groovy
     dependencies {
-      implementation 'com.appliedrec.verid:rx:[2.0,3.0['
+      implementation 'com.appliedrec.verid:rx:[1.10,3.0['
     }
     ~~~
 
